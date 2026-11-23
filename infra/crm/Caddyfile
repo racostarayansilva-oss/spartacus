@@ -1,0 +1,28 @@
+{
+	email {$EMAIL_SSL}
+}
+
+{$DOMINIO_APP} {
+	encode zstd gzip
+	reverse_proxy ra-connect:3000
+}
+
+www.{$DOMINIO_APP} {
+	redir https://{$DOMINIO_APP}{uri} permanent
+}
+
+{$DOMINIO_CRM} {
+	encode zstd gzip
+	reverse_proxy evo-frontend:80
+}
+
+{$DOMINIO_API} {
+	encode zstd gzip
+	# Ponte de login do RA Connect: vai direto ao auth-service (fora das rotas do gateway).
+	handle /api/v1/sso/ra-connect {
+		reverse_proxy evo-auth:3001
+	}
+	handle {
+		reverse_proxy gateway:3030
+	}
+}

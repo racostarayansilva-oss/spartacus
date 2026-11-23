@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+.vercel
+*.log
+supabase/.temp
+build-servidor
+infra/crm/ra-connect.env

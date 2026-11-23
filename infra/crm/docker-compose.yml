@@ -1,0 +1,385 @@
+# Servidor único (VPS 4 vCPU / 16 GB) com Docker Compose: RA Connect (site + API) e Evo CRM Community.
+# O banco do RA Connect continua no Supabase; o do CRM é o Postgres deste arquivo.
+# Baseado no docker-compose.swarm.yaml oficial (evolution-foundation/evo-crm-community),
+# adaptado para um nó só: Caddy no lugar do Traefik, Postgres+pgvector incluso,
+# limites de memória por serviço e duas imagens próprias (ponte de login com o RA Connect).
+# Nenhuma porta de serviço é publicada: só o Caddy (80/443) fica exposto.
+
+x-rails: &rails
+  RAILS_ENV: production
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+  EVOAI_CRM_API_TOKEN: ${EVOAI_CRM_API_TOKEN}
+  POSTGRES_HOST: pgvector
+  POSTGRES_PORT: "5432"
+  POSTGRES_USERNAME: postgres
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_DATABASE: evocrm
+  POSTGRES_SSLMODE: disable
+  REDIS_URL: redis://redis:6379/1
+  FRONTEND_URL: https://${DOMINIO_CRM}
+  BACKEND_URL: https://${DOMINIO_API}
+  CORS_ORIGINS: https://${DOMINIO_CRM},https://${DOMINIO_API}
+  ACTIVE_STORAGE_SERVICE: local
+  ACTIVE_STORAGE_URL: https://${DOMINIO_API}
+  SMTP_DOMAIN: ${SMTP_DOMAIN:-}
+  MAILER_SENDER_EMAIL: ${MAILER_SENDER_EMAIL:-}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_ADDRESS: ${SMTP_ADDRESS:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_AUTHENTICATION: plain
+  SMTP_ENABLE_STARTTLS_AUTO: "true"
+  DISABLE_TELEMETRY: "true"
+  RAILS_LOG_TO_STDOUT: "true"
+  LOG_LEVEL: info
+
+x-auth: &auth
+  <<: *rails
+  DOORKEEPER_JWT_SECRET_KEY: ${DOORKEEPER_JWT_SECRET_KEY}
+  DOORKEEPER_JWT_ALGORITHM: hs256
+  DOORKEEPER_JWT_ISS: evo-auth-service
+  MFA_ISSUER: RA Connect CRM
+  SIDEKIQ_CONCURRENCY: "5"
+  OAUTH_TOKEN_EXPIRES_IN: "28800"
+
+x-crm: &crm
+  <<: *rails
+  EVO_AI_ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+  EVO_AUTH_SERVICE_URL: http://evo-auth:3001
+  EVO_AI_CORE_SERVICE_URL: http://evo-core:5555
+  EVO_FLOW_ENABLED: "true"
+  EVO_FLOW_API_URL: http://evo-flow:3334/api/v1
+  AUTH_APIKEY_INTEGRATION_LOCAL: ${AUTH_APIKEY_INTEGRATION_LOCAL}
+  EVO_FLOW_ALLOW_INSECURE: "true"
+  ENABLE_ACCOUNT_SIGNUP: "false"
+  ENABLE_PUSH_RELAY_SERVER: "true"
+  ENABLE_INBOX_EVENTS: "true"
+  BOT_RUNTIME_URL: http://evo-bot-runtime:8080
+  BOT_RUNTIME_SECRET: ${BOT_RUNTIME_SECRET}
+  BOT_RUNTIME_POSTBACK_BASE_URL: http://evo-crm:3000
+  SIDEKIQ_CONCURRENCY: "5"
+
+x-padrao: &padrao
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "3" }
+
+services:
+  caddy:
+    <<: *padrao
+    image: caddy:2.8-alpine
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMINIO_APP: ${DOMINIO_APP}
+      DOMINIO_CRM: ${DOMINIO_CRM}
+      DOMINIO_API: ${DOMINIO_API}
+      EMAIL_SSL: ${EMAIL_SSL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    mem_limit: 128m
+
+  # RA Connect: site e /api (código enviado por infra/publicar.sh; variáveis em ra-connect.env)
+  ra-connect:
+    <<: *padrao
+    build:
+      context: ../..
+    image: ra-connect/app:latest
+    env_file: [ra-connect.env]
+    environment:
+      CRM_URL: https://${DOMINIO_CRM}
+      CRM_API_URL: https://${DOMINIO_API}
+      CRM_SSO_TOKEN: ${RA_CONNECT_SSO_TOKEN}
+      ORIGEM_APP: https://${DOMINIO_APP}
+      # Monitor automático: resumo pelo WhatsApp do escritório
+      EVOLUTION_URL: http://evolution-api:8080
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+    mem_limit: 768m
+
+  pgvector:
+    <<: *padrao
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: evocrm
+    command: ["postgres", "-c", "shared_buffers=512MB", "-c", "max_connections=300"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 20
+    mem_limit: 2g
+
+  redis:
+    <<: *padrao
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "400mb", "--maxmemory-policy", "noeviction"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+    mem_limit: 512m
+
+  clickhouse:
+    <<: *padrao
+    image: clickhouse/clickhouse-server:25.8-alpine
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DB: default
+    volumes: [clickhouse_data:/var/lib/clickhouse]
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    mem_limit: 2g
+
+  rabbitmq:
+    <<: *padrao
+    image: rabbitmq:3-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: evoflow
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes: [rabbitmq_data:/var/lib/rabbitmq]
+    mem_limit: 512m
+
+  gateway:
+    <<: *padrao
+    image: evoapicloud/evo-crm-gateway:${EVO_VERSION}
+    environment:
+      AUTH_UPSTREAM: evo-auth:3001
+      CRM_UPSTREAM: evo-crm:3000
+      CORE_UPSTREAM: evo-core:5555
+      PROCESSOR_UPSTREAM: evo-processor:8000
+      BOT_RUNTIME_UPSTREAM: evo-bot-runtime:8080
+    mem_limit: 128m
+
+  evo-auth:
+    <<: *padrao
+    build:
+      context: ./auth
+      args: { EVO_VERSION: "${EVO_VERSION}" }
+    image: ra-connect/evo-auth:${EVO_VERSION}
+    command: bash -c "bundle exec rails db:migrate && bundle exec rails s -p 3001 -b 0.0.0.0"
+    environment:
+      <<: *auth
+      RA_CONNECT_SSO_TOKEN: ${RA_CONNECT_SSO_TOKEN}
+    volumes: [auth_storage:/rails/storage]
+    depends_on:
+      pgvector: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    mem_limit: 1g
+
+  evo-auth-sidekiq:
+    <<: *padrao
+    image: ra-connect/evo-auth:${EVO_VERSION}
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    environment: *auth
+    volumes: [auth_storage:/rails/storage]
+    depends_on: [evo-auth]
+    healthcheck: { disable: true }
+    mem_limit: 768m
+
+  evo-crm:
+    <<: *padrao
+    image: evoapicloud/evo-ai-crm-community:${EVO_VERSION}
+    command: sh -c "until wget -qO- http://evo-auth:3001/health >/dev/null 2>&1; do echo 'Aguardando auth...'; sleep 5; done; bundle exec rails db:migrate && bundle exec rails s -p 3000 -b 0.0.0.0"
+    environment:
+      <<: *crm
+      RAILS_SERVE_STATIC_FILES: "true"
+    volumes: [crm_storage:/app/storage]
+    depends_on: [evo-auth]
+    mem_limit: 1536m
+
+  evo-crm-sidekiq:
+    <<: *padrao
+    image: evoapicloud/evo-ai-crm-community:${EVO_VERSION}
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    environment:
+      <<: *crm
+      RUN_MIGRATIONS: "false"
+    volumes: [crm_storage:/app/storage]
+    depends_on: [evo-crm]
+    healthcheck: { disable: true }
+    mem_limit: 1g
+
+  evo-core:
+    <<: *padrao
+    image: evoapicloud/evo-ai-core-service-community:${EVO_VERSION}
+    environment:
+      DB_HOST: pgvector
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: evocrm
+      DB_SSLMODE: disable
+      DB_MAX_IDLE_CONNS: "5"
+      DB_MAX_OPEN_CONNS: "30"
+      DB_CONN_MAX_LIFETIME: 1h
+      DB_CONN_MAX_IDLE_TIME: 30m
+      PORT: "5555"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: HS256
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      EVOLUTION_BASE_URL: http://evo-crm:3000
+      EVO_AUTH_BASE_URL: http://evo-auth:3001
+      AI_PROCESSOR_URL: http://evo-processor:8000
+      AI_PROCESSOR_VERSION: v1
+    depends_on:
+      pgvector: { condition: service_healthy }
+    mem_limit: 512m
+
+  evo-processor:
+    <<: *padrao
+    image: evoapicloud/evo-ai-processor-community:${EVO_VERSION}
+    command: sh -c "alembic upgrade head && python -m scripts.run_seeders; uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      POSTGRES_CONNECTION_STRING: postgresql://postgres:${POSTGRES_PASSWORD}@pgvector:5432/evocrm?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_SSL: "false"
+      REDIS_DB: "1"
+      REDIS_KEY_PREFIX: a2a_
+      REDIS_TTL: "3600"
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DEBUG: "false"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      EVOAI_CRM_API_TOKEN: ${EVOAI_CRM_API_TOKEN}
+      EVO_AUTH_BASE_URL: http://evo-auth:3001
+      EVO_AI_CRM_URL: http://evo-crm:3000
+      CORE_SERVICE_URL: http://evo-core:5555/api/v1
+      APP_URL: https://${DOMINIO_API}
+      API_URL: https://${DOMINIO_API}
+      ORGANIZATION_NAME: RA Costa Advocacia
+      TOOLS_CACHE_ENABLED: "true"
+      TOOLS_CACHE_TTL: "3600"
+    volumes: [processor_logs:/app/logs]
+    depends_on: [evo-auth]
+    mem_limit: 1g
+
+  evo-bot-runtime:
+    <<: *padrao
+    image: evoapicloud/evo-bot-runtime:${EVO_VERSION}
+    environment:
+      LISTEN_ADDR: 0.0.0.0:8080
+      REDIS_URL: redis://redis:6379/1
+      AI_PROCESSOR_URL: http://evo-processor:8000
+      BOT_RUNTIME_SECRET: ${BOT_RUNTIME_SECRET}
+      AI_CALL_TIMEOUT_SECONDS: "90"
+      MEDIA_HOST_ALLOWLIST: ${DOMINIO_API}
+    mem_limit: 256m
+
+  evo-flow:
+    <<: *padrao
+    image: evoapicloud/evo-flow-community:${EVO_VERSION}
+    command:
+      - sh
+      - -c
+      - |
+        until node -e 'require("http").get("http://clickhouse:8123/ping",r=>process.exit(r.statusCode===200?0:1)).on("error",()=>process.exit(1))'; do echo 'Aguardando clickhouse...'; sleep 5; done
+        node -e 'const{Client}=require("pg");const db=process.env.POSTGRES_DB_DATABASE;const c=new Client({host:process.env.POSTGRES_DB_HOST,port:+(process.env.POSTGRES_DB_PORT||5432),user:process.env.POSTGRES_DB_USERNAME,password:process.env.POSTGRES_DB_PASSWORD,database:"postgres"});c.connect().then(()=>c.query("CREATE DATABASE "+db)).then(()=>console.log("[init] created "+db)).catch(e=>console.log("[init] "+(e.code==="42P04"?"db already exists":e.message))).finally(()=>c.end());'
+        node_modules/.bin/typeorm migration:run -d dist/database/ormconfig.js || echo "[init] migration:run falhou (continuando)"
+        exec node dist/main.js
+    environment:
+      NODE_ENV: production
+      RUN_MODE: api
+      QUEUE_MODE: direct
+      STORAGE_MODE: clickhouse
+      WRITE_MODE: ch-sync
+      PORT: "3334"
+      LOG_LEVEL: log
+      AUTH_APIKEY_INTEGRATION_LOCAL: ${AUTH_APIKEY_INTEGRATION_LOCAL}
+      EVO_AUTH_SERVICE_URL: http://evo-auth:3001
+      EVO_AUTH_VALIDATE_TOKEN_ENDPOINT: /api/v1/auth/validate
+      EVOAI_CRM_BASE_URL: http://evo-crm:3000
+      EVOAI_CRM_API_TOKEN: ${EVOAI_CRM_API_TOKEN}
+      BROKER_TYPE: rabbitmq
+      RABBITMQ_URL: amqp://evoflow:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: evo_campaign
+      CLICKHOUSE_USERNAME: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_TABLE: contact_events
+      POSTGRES_DB_HOST: pgvector
+      POSTGRES_DB_PORT: "5432"
+      POSTGRES_DB_USERNAME: postgres
+      POSTGRES_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB_DATABASE: evo_campaign
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB: "4"
+    depends_on:
+      pgvector: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_started }
+      clickhouse: { condition: service_started }
+    mem_limit: 768m
+
+  evo-frontend:
+    <<: *padrao
+    build:
+      context: ./frontend
+      args: { EVO_VERSION: "${EVO_VERSION}" }
+    image: ra-connect/evo-frontend:${EVO_VERSION}
+    environment:
+      VITE_APP_ENV: production
+      VITE_API_URL: https://${DOMINIO_API}
+      VITE_AUTH_API_URL: https://${DOMINIO_API}
+      VITE_EVOAI_API_URL: https://${DOMINIO_API}
+      VITE_AGENT_PROCESSOR_URL: https://${DOMINIO_API}
+      VITE_WS_URL: https://${DOMINIO_API}
+      ORIGEM_RA_CONNECT: ${ORIGEM_RA_CONNECT}
+    mem_limit: 128m
+
+  # WhatsApp por QR Code (não oficial). Só na rede interna: o CRM acessa em http://evolution-api:8080
+  # Banco próprio (evolution) para as migrações dela não misturarem com as tabelas do CRM.
+  evolution-api:
+    <<: *padrao
+    image: evoapicloud/evolution-api:v2.3.7
+    environment:
+      SERVER_URL: http://evolution-api:8080
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://postgres:${POSTGRES_PASSWORD}@pgvector:5432/evolution?schema=public
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_LOCAL_ENABLED: "false"
+      CONFIG_SESSION_PHONE_CLIENT: RA Connect
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      DEL_INSTANCE: "false"
+      LANGUAGE: pt-BR
+      LOG_LEVEL: ERROR,WARN,INFO
+    volumes: [evolution_instances:/evolution/instances]
+    depends_on:
+      pgvector: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    mem_limit: 768m
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+  rabbitmq_data:
+  auth_storage:
+  crm_storage:
+  processor_logs:
+  evolution_instances:

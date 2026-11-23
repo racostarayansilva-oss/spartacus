@@ -1,0 +1,10 @@
+node_modules
+dist
+build-servidor
+.env
+.env.*
+.git
+.vercel
+infra
+docs
+*.log

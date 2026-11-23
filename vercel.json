@@ -1,0 +1,21 @@
+{
+  "regions": [
+    "gru1"
+  ],
+  "functions": {
+    "api/router.ts": {
+      "maxDuration": 60,
+      "includeFiles": "server/dados/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/router?path=:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
