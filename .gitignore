@@ -9,3 +9,6 @@ build-servidor
 infra/spartacus/spartacus.env
 infra/spartacus/.env
 .vercel
+
+.vercel
+.env*
