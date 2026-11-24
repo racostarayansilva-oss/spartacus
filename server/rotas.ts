@@ -100,7 +100,7 @@ const rotas: [string, RegExp, Handler, 'aberta' | 'equipe' | 'logado' | 'adminis
     return ok(await resumirFala(r.corpo?.texto));
   }, 'equipe'],
   ['POST', /^crm\/sessao$/, async (_r, _p, sessao) => {
-    if (!sessao) throw new ErroApi(503, 'O CRM exige login do RA Connect (Supabase).');
+    if (!sessao) throw new ErroApi(503, 'O CRM exige login do Spartacus (Supabase).');
     return ok(await sessaoCrm(sessao.email));
   }, 'equipe'],
   ['GET', /^publicacoes\/pagina$/, async (r) =>

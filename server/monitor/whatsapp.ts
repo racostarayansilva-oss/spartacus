@@ -1,11 +1,14 @@
-// Envio de resumo pelo WhatsApp do escritório (Evolution API na mesma VPS).
-// EVOLUTION_URL (padrão http://evolution-api:8080), EVOLUTION_API_KEY, EVOLUTION_INSTANCIA (opcional: senão usa a conectada)
-// e MONITOR_WHATSAPP_DESTINO: número com DDI e DDD (5591999999999) ou id do grupo (…@g.us).
+// Resumo do monitor pelo WhatsApp de cada escritório (Evolution API na mesma VPS).
+// EVOLUTION_URL (padrão http://evolution-api:8080) e EVOLUTION_API_KEY ficam no servidor; a instância e o
+// destino (número com DDI e DDD, ou id do grupo …@g.us) são de cada escritório (Plataforma → escritório).
+// Sem destino cadastrado o escritório não recebe resumo: nunca manda dados de um escritório para outro número.
 import { env } from '../http.js';
 
 const base = () => (env('EVOLUTION_URL') || 'http://evolution-api:8080').replace(/\/$/, '');
 
-export const whatsappConfigurado = () => !!(env('EVOLUTION_API_KEY') && env('MONITOR_WHATSAPP_DESTINO'));
+export interface WhatsappEscritorio { instancia?: string; destino?: string }
+
+export const whatsappConfigurado = (w?: WhatsappEscritorio) => !!(env('EVOLUTION_API_KEY') && w?.instancia && w?.destino);
 
 async function chamar(caminho: string, init: RequestInit = {}) {
   const r = await fetch(`${base()}${caminho}`, {
@@ -18,20 +21,11 @@ async function chamar(caminho: string, init: RequestInit = {}) {
   return texto ? JSON.parse(texto) : null;
 }
 
-async function instancia(): Promise<string> {
-  if (env('EVOLUTION_INSTANCIA')) return env('EVOLUTION_INSTANCIA');
-  const lista: any[] = (await chamar('/instance/fetchInstances')) || [];
-  const conectada = lista.find((i) => (i.connectionStatus || i.instance?.state) === 'open') || lista[0];
-  const nome = conectada?.name || conectada?.instance?.instanceName;
-  if (!nome) throw new Error('Nenhum WhatsApp conectado na Evolution API.');
-  return nome;
-}
-
-export async function enviarWhatsapp(texto: string) {
-  if (!whatsappConfigurado()) return false;
-  await chamar(`/message/sendText/${encodeURIComponent(await instancia())}`, {
+export async function enviarWhatsapp(texto: string, w?: WhatsappEscritorio) {
+  if (!whatsappConfigurado(w)) return false;
+  await chamar(`/message/sendText/${encodeURIComponent(w!.instancia!)}`, {
     method: 'POST',
-    body: JSON.stringify({ number: env('MONITOR_WHATSAPP_DESTINO'), text: texto.slice(0, 4000) }),
+    body: JSON.stringify({ number: w!.destino, text: texto.slice(0, 4000) }),
   });
   return true;
 }

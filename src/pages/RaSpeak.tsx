@@ -1,4 +1,4 @@
-// RA Speak: grava do microfone, transcreve com a API de voz do navegador (grátis) e, se a
+// Ditado: grava do microfone, transcreve com a API de voz do navegador (grátis) e, se a
 // equipe pedir, manda o texto para o Resumo Inteligente (DeepSeek) resumir.
 // Observação: a Web Speech API funciona no Chrome e no Edge. O Safari ainda não oferece.
 
@@ -82,15 +82,15 @@ export default function RaSpeak() {
   if (!suportado) {
     return (
       <>
-        <Topo titulo="RA Speak" subtitulo="Fale e eu transcrevo" />
-        <div className="cartao">Este navegador não oferece a API de voz. Abra no <b>Chrome</b> ou no <b>Edge</b> (desktop ou Android) para usar o RA Speak.</div>
+        <Topo titulo="Ditado" subtitulo="Fale e eu transcrevo" />
+        <div className="cartao">Este navegador não oferece a API de voz. Abra no <b>Chrome</b> ou no <b>Edge</b> (desktop ou Android) para usar o Ditado.</div>
       </>
     );
   }
 
   return (
     <>
-      <Topo titulo="RA Speak" subtitulo="Fale e eu transcrevo. Depois pode resumir.">
+      <Topo titulo="Ditado" subtitulo="Fale e eu transcrevo. Depois pode resumir.">
         <button className="btn" onClick={limpar} disabled={gravando}>Limpar</button>
         <button className="btn" onClick={copiar} disabled={!texto}>Copiar</button>
         <button className="btn" onClick={resumir} disabled={!texto || resumindo}>{resumindo ? 'Resumindo…' : 'Resumir com IA'}</button>

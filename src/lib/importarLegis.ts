@@ -104,7 +104,7 @@ export function nomesDoCliente(l: Pick<LinhaLegis, 'titulo' | 'processo'>): stri
   return [...new Set(nomes.map((x) => x.trim()))];
 }
 
-/** Processo do RA Connect para a linha: pelo número CNJ no texto ou pelo nome do cliente (se ele tiver um processo só, ou o mais recente). */
+/** Processo do Spartacus para a linha: pelo número CNJ no texto ou pelo nome do cliente (se ele tiver um processo só, ou o mais recente). */
 export function processoDaLinha(l: LinhaLegis, b: Pick<Banco, 'processos' | 'clientes'>): string | undefined {
   const cnj = `${l.titulo} ${l.processo}`.match(CNJ)?.[0];
   if (cnj) {

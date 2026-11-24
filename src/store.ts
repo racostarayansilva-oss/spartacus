@@ -183,10 +183,12 @@ export interface Config {
   etiquetasTarefa?: Etiqueta[];
   /** Correções de dados já aplicadas (rodam uma vez só) */
   migracoes?: string[];
-  /** Importação do Legis: nome no Legis → id da pessoa no RA Connect ("" = ninguém) */
+  /** Importação do Legis: nome no Legis → id da pessoa no Spartacus ("" = ninguém) */
   responsaveisLegis?: Record<string, string>;
-  /** Domínio dos e-mails gerados para os clientes (ex.: clientes.racosta.adv.br) */
+  /** Domínio dos e-mails gerados para os clientes (ex.: clientes.seuescritorio.adv.br) */
   dominioEmails?: string;
+  /** Dados do escritório nos documentos (procuração, contrato, declarações) */
+  documentos?: { contato?: string; qualificacao?: string; foro?: string };
 }
 
 export interface Banco {
@@ -197,7 +199,7 @@ export interface Banco {
   emails: EmailRecebido[]; senhas: Senha[]; notificacoes: Notificacao[];
 }
 
-const CHAVE = 'ra-connect:banco:v1';
+const CHAVE = 'spartacus:banco:v1';
 
 export const novoId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
@@ -339,8 +341,13 @@ function seed(): Banco {
     versao: 1,
     config: {
       plano: 'diamante', usuarioAtualId: 'u-adm', nomeEscritorio: 'Duarte Advocacia (exemplo)',
-      oabs: [{ numero: '123456', uf: 'SP' }], feriadosExtras: [], tema: 'escuro',
+      oabs: [{ numero: '123456', uf: 'SP' }], feriadosExtras: [], tema: 'claro',
       etiquetasTarefa: ETIQUETAS_TAREFA, dominioEmails: 'clientes.exemplo.adv.br',
+      documentos: {
+        contato: '(11) 3000-0000\ncontato@duarteadvocacia.exemplo',
+        qualificacao: 'HELENA DUARTE, brasileira, advogada, inscrita na OAB/SP sob o nº 123.456, com escritório em São Paulo/SP.',
+        foro: 'São Paulo/SP',
+      },
     },
     usuarios, corretores, clientes, processos, registros, audiencias, intimacoes, compromissos, tarefas, mensagens, pedidos, lancamentos, logsCpf: [], atividades, relatoriosDiarios,
     emails: [
@@ -356,7 +363,7 @@ function seed(): Banco {
       },
     ],
     notificacoes: [
-      { id: 'n1', paraId: 'u-adm', deId: 'u-ana', tipo: 'mencao', tarefaId: 't1', tarefaTitulo: 'Montar rol de testemunhas — Maria', trecho: '@Rômulo pode revisar o rol antes de protocolar?', em: `${d(0)}T08:40:00`, lida: false },
+      { id: 'n1', paraId: 'u-adm', deId: 'u-ana', tipo: 'mencao', tarefaId: 't1', tarefaTitulo: 'Montar rol de testemunhas — Maria', trecho: '@Helena pode revisar o rol antes de protocolar?', em: `${d(0)}T08:40:00`, lida: false },
       { id: 'n2', paraId: 'u-adm', deId: 'u-carla', tipo: 'tarefa_criada', tarefaId: 't2', tarefaTitulo: 'Petição inicial BPC — Joana (novo caso)', em: `${d(-1)}T16:05:00`, lida: true },
     ],
     senhas: [
@@ -461,7 +468,7 @@ export function exportarJson(): string {
 /** Importa um backup. Na nuvem, substitui os dados do escritório pelos do arquivo. */
 export function importarJson(texto: string) {
   const b = JSON.parse(texto) as Banco;
-  if (!b || !Array.isArray(b.processos)) throw new Error('Arquivo não parece um backup do RA Connect.');
+  if (!b || !Array.isArray(b.processos)) throw new Error('Arquivo não parece um backup do Spartacus.');
   // Backup sem e-mails ou sem senhas (feito por quem não é administrador, ou antes delas) não apaga as atuais
   const manterEmails = !Array.isArray(b.emails), manterSenhas = !Array.isArray(b.senhas), manterNotif = !Array.isArray(b.notificacoes);
   completar(b);

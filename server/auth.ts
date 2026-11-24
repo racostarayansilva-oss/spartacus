@@ -11,6 +11,8 @@ export interface Sessao {
   email?: string;
   papel: Papel;
   cpf?: string | null;
+  /** Escritório da pessoa (multi-escritório) */
+  escritorioId?: string | null;
   token: string;
 }
 
@@ -45,7 +47,7 @@ export async function autenticar(cabecalho: string | undefined): Promise<Sessao 
   const cfg = supabaseConfigurado();
   if (!cfg) return null;
   const token = (cabecalho || '').replace(/^Bearer\s+/i, '').trim();
-  if (!token) throw new ErroApi(401, 'Faça login para usar o RA Connect.');
+  if (!token) throw new ErroApi(401, 'Faça login para usar o Spartacus.');
 
   const c = cache.get(token);
   if (c && c.ate > Date.now()) return c.sessao;
@@ -60,14 +62,15 @@ export async function autenticar(cabecalho: string | undefined): Promise<Sessao 
   const user = await ru.json();
 
   const sessao: Sessao = { id: user.id, nome: user.email, email: user.email, papel: 'pendente', token };
-  const perfis = await supabaseRest(sessao, `perfis?select=nome,papel,cpf&auth_id=eq.${user.id}`);
+  const perfis = await supabaseRest(sessao, `perfis?select=nome,papel,cpf,escritorio_id&auth_id=eq.${user.id}`);
   const p = perfis?.[0];
   if (p) {
     sessao.nome = p.nome || user.email;
     sessao.papel = p.papel;
     sessao.cpf = p.cpf;
+    sessao.escritorioId = p.escritorio_id;
   }
-  if (sessao.papel === 'pendente' || sessao.papel === 'bloqueado') {
+  if (sessao.papel === 'pendente' || sessao.papel === 'bloqueado' || !sessao.escritorioId) {
     throw new ErroApi(403, 'Seu acesso ainda não foi liberado pelo administrador.');
   }
   cache.set(token, { sessao, ate: Date.now() + 60_000 });

@@ -26,7 +26,7 @@ function Documentos({ c }: { c: Cliente }) {
 export default function Clientes() {
   const b = useBanco();
   const [params, setParams] = useSearchParams();
-  const [novo, setNovo] = useState(false);
+  const [novo, setNovo] = useState(() => new URLSearchParams(window.location.search).get('novo') === '1');
   const [busca, setBusca] = useState('');
   const [corretor, setCorretor] = useState('');
   const [beneficio, setBeneficio] = useState<Beneficio | ''>('');

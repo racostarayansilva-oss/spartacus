@@ -55,7 +55,7 @@ export function ImportarProcessosLegis({ aoFechar }: { aoFechar: () => void }) {
     <Modal titulo="Importar processos do Legis" aoFechar={aoFechar} largo>
       <div className="grade" style={{ gap: 12 }}>
         <p className="mudo" style={{ margin: 0 }}>
-          No Legis, exporte o relatório de processos em CSV. Os processos que ainda não estão no RA Connect são cadastrados (com o cliente pelo nome do autor);
+          No Legis, exporte o relatório de processos em CSV. Os processos que ainda não estão no Spartacus são cadastrados (com o cliente pelo nome do autor);
           os que já existem recebem o valor da causa e a fase do Legis. Pode importar de novo sem duplicar.
         </p>
         <input type="file" accept=".csv,text/csv" multiple onChange={(e) => ler(e.target.files)} aria-label="Relatório de processos do Legis (CSV)" />

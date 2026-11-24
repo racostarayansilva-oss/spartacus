@@ -1,4 +1,4 @@
-// CRM (Evo CRM Community) dentro do RA Connect, já logado: a ponte troca a sessão por um token do CRM
+// CRM (Evo CRM Community) dentro do Spartacus, já logado: a ponte troca a sessão por um token do CRM
 // e o entrega à página sso.html do CRM por postMessage (o token nunca vai na URL).
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';

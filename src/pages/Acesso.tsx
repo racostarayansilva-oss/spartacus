@@ -2,23 +2,26 @@
 import { FormEvent, KeyboardEvent, ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Campo } from '../components/ui';
-import { definirNovaSenha, enviarRecuperacao, entrar, sair } from '../nuvem';
+import { criarConta, definirNovaSenha, enviarRecuperacao, entrar, sair } from '../nuvem';
+import { nomeExibido, PRODUTO, useMarca } from '../marca';
 import '../inicio.css';
 
 function Moldura({ titulo, subtitulo, voltar, children }: { titulo: string; subtitulo?: string; voltar?: boolean; children: ReactNode }) {
+  const { marca, escritorio } = useMarca();
   return (
     <div className="acesso">
       <div className="acesso-coluna">
         {voltar && <Link to="/" className="acesso-voltar">← Voltar ao início</Link>}
         <div className="acesso-cartao">
           <div className="acesso-marca">
-            <img src="/logo.svg" alt="RA Connect" />
+            <img src={marca.logo || '/logo.svg'} alt={nomeExibido(marca)} />
+            {escritorio && <span className="acesso-escritorio">{marca.nome}</span>}
             <h1>{titulo}</h1>
             {subtitulo && <p>{subtitulo}</p>}
           </div>
           {children}
         </div>
-        <p className="acesso-rodape">RA Costa Advocacia &amp; Consultoria · acesso restrito à equipe</p>
+        <p className="acesso-rodape">{escritorio ? `${marca.nome} · acesso restrito à equipe · ${PRODUTO}` : `${PRODUTO} · software jurídico`}</p>
       </div>
     </div>
   );
@@ -46,12 +49,22 @@ export function Login() {
   const [senha, setSenha] = useState('');
   const [msg, setMsg] = useState<{ tipo: 'erro' | 'aviso'; texto: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [primeiro, setPrimeiro] = useState(false);
 
   const enviar = async (e: FormEvent) => {
     e.preventDefault();
     setEnviando(true);
     setMsg(null);
     try {
+      if (primeiro) {
+        if (senha.length < 8) throw new Error('Use pelo menos 8 caracteres na senha.');
+        const entrou = await criarConta(email.trim(), senha);
+        if (!entrou) {
+          setMsg({ tipo: 'aviso', texto: `Enviamos para ${email.trim()} um link de confirmação. Abra o link e depois entre com a senha que você criou.` });
+          setEnviando(false);
+        }
+        return;
+      }
       await entrar(email.trim(), senha);
     } catch (er: any) {
       setMsg({ tipo: 'erro', texto: er.message });
@@ -70,13 +83,16 @@ export function Login() {
   };
 
   return (
-    <Moldura titulo="Entrar" subtitulo="Use o e-mail e a senha cadastrados pelo escritório." voltar>
+    <Moldura titulo={primeiro ? 'Primeiro acesso' : 'Entrar'} subtitulo={primeiro ? 'Use o e-mail que o escritório liberou para você e crie sua senha.' : 'Use o e-mail e a senha cadastrados pelo escritório.'} voltar>
       <form onSubmit={enviar}>
         <Campo rotulo="E-mail"><input type="email" autoComplete="username" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></Campo>
-        <CampoSenha valor={senha} aoMudar={setSenha} />
+        <CampoSenha valor={senha} aoMudar={setSenha} novo={primeiro} />
         {msg && <div className={msg.tipo} role={msg.tipo === 'erro' ? 'alert' : 'status'}>{msg.texto}</div>}
-        <button className="pub-btn pub-btn-primario" type="submit" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
-        <button className="acesso-link" type="button" onClick={esqueci}>Esqueci a senha</button>
+        <button className="pub-btn pub-btn-primario" type="submit" disabled={enviando}>{enviando ? (primeiro ? 'Criando…' : 'Entrando…') : (primeiro ? 'Criar senha e entrar' : 'Entrar')}</button>
+        {!primeiro && <button className="acesso-link" type="button" onClick={esqueci}>Esqueci a senha</button>}
+        <button className="acesso-link" type="button" onClick={() => { setPrimeiro(!primeiro); setMsg(null); }}>
+          {primeiro ? 'Já tenho senha' : 'Primeiro acesso? Criar senha'}
+        </button>
       </form>
     </Moldura>
   );
@@ -112,7 +128,7 @@ export function AguardandoLiberacao({ email }: { email?: string }) {
   return (
     <Moldura titulo="Quase lá" subtitulo="Seu acesso ainda não foi liberado.">
       <p className="mudo" style={{ margin: 0, textAlign: 'center' }}>
-        O login {email ? <strong>{email}</strong> : ''} foi criado. Peça ao administrador do escritório para liberar em Configurações → Equipe e acessos.
+        O login {email ? <strong>{email}</strong> : ''} existe, mas ainda não está ligado a um escritório ativo. Peça ao administrador do escritório para liberar este e-mail em Configurações → Equipe e acessos.
       </p>
       <button className="acesso-link" onClick={() => sair()}>Sair</button>
     </Moldura>
@@ -133,6 +149,18 @@ export function ErroNuvem({ erro }: { erro?: string }) {
       <div className="erro" role="alert">{erro}</div>
       <p className="mudo" style={{ margin: 0 }}>Se for a primeira vez, confira se o arquivo supabase/schema.sql foi executado no SQL Editor do Supabase.</p>
       <button className="pub-btn pub-btn-primario" onClick={() => window.location.reload()}>Tentar de novo</button>
+      <button className="acesso-link" onClick={() => sair()}>Sair</button>
+    </Moldura>
+  );
+}
+
+export function OutroEscritorio({ email }: { email?: string }) {
+  const { marca } = useMarca();
+  return (
+    <Moldura titulo="Endereço de outro escritório" subtitulo={`Este é o acesso de ${marca.nome}.`}>
+      <p className="mudo" style={{ margin: 0, textAlign: 'center' }}>
+        O login {email ? <strong>{email}</strong> : ''} pertence a outro escritório. Entre pelo endereço do seu escritório.
+      </p>
       <button className="acesso-link" onClick={() => sair()}>Sair</button>
     </Moldura>
   );

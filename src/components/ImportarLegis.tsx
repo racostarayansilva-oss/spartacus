@@ -69,7 +69,7 @@ export function ImportarLegis({ aoFechar }: { aoFechar: () => void }) {
             <div className="aviso">
               <b>{linhas.length}</b> tarefa(s) em {arquivos.join(', ')}: {Object.entries(situacoes).map(([s, n]) => `${n} ${s.toLowerCase()}`).join(', ')}.
               <br />
-              Vão entrar <b>{plano.novas}</b> nova(s) e <b>{plano.atualizadas}</b> já importada(s) serão atualizadas. <b>{plano.comProcesso}</b> ligada(s) a um processo do RA Connect
+              Vão entrar <b>{plano.novas}</b> nova(s) e <b>{plano.atualizadas}</b> já importada(s) serão atualizadas. <b>{plano.comProcesso}</b> ligada(s) a um processo do Spartacus
               {plano.semResponsavel ? <>; <b>{plano.semResponsavel}</b> ficariam sem responsável</> : ''}.
             </div>
             <label className="flex" style={{ gap: 8 }}>
@@ -82,14 +82,14 @@ export function ImportarLegis({ aoFechar }: { aoFechar: () => void }) {
               <p className="mudo" style={{ marginTop: 0, fontSize: 13 }}>O primeiro da lista vira o responsável; os outros, participantes. Nomes sem correspondência ficam anotados na descrição da tarefa.</p>
               <div className="tabela-wrap">
                 <table>
-                  <thead><tr><th>No Legis</th><th className="num">Tarefas</th><th>No RA Connect</th></tr></thead>
+                  <thead><tr><th>No Legis</th><th className="num">Tarefas</th><th>No Spartacus</th></tr></thead>
                   <tbody>
                     {nomes.map(({ nome, tarefas }) => (
                       <tr key={nome}>
                         <td>{nome}</td>
                         <td className="num">{tarefas}</td>
                         <td>
-                          <select value={mapa[nome] || ''} onChange={(e) => setMapa({ ...mapa, [nome]: e.target.value })} aria-label={`Pessoa do RA Connect para ${nome}`}>
+                          <select value={mapa[nome] || ''} onChange={(e) => setMapa({ ...mapa, [nome]: e.target.value })} aria-label={`Pessoa do Spartacus para ${nome}`}>
                             <option value="">Ninguém (só anotar)</option>
                             {equipe.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
                           </select>

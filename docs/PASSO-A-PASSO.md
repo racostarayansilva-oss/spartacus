@@ -1,55 +1,47 @@
-# Colocar o RA Connect no ar (Supabase + Vercel)
+# Colocar a plataforma Spartacus no ar (uma vez só)
 
-Leva uns 15 minutos. Siga na ordem.
+Tudo roda no servidor próprio (VPS), com o banco no Supabase. Depois disso, cada escritório novo é criado pela tela da Plataforma (veja [IMPLANTACAO.md](IMPLANTACAO.md)).
 
-## 1. Criar o banco (Supabase)
+## 1. Banco (Supabase)
 
-> Use um projeto **novo**, separado do gestao-escritorio. No projeto atual, qualquer pessoa logada consegue ler a folha de pagamento.
+1. Crie um projeto no Supabase (região São Paulo). Para ~100 escritórios, o plano Pro dá folga.
+2. SQL Editor → cole todo o [supabase/schema.sql](../supabase/schema.sql) → Run. Pode rodar de novo a qualquer momento (não apaga dados).
+3. Authentication → Sign In / Providers → Email: deixe o cadastro por e-mail ligado (o "Primeiro acesso" usa isso; só entra no escritório quem foi liberado antes). Em URL Configuration, cadastre `https://*.SEU_DOMINIO` nas Redirect URLs.
+4. Crie o seu login (Authentication → Users → Add user) e torne-se administrador da plataforma:
 
-1. Entre em **supabase.com** → **New project**.
-   - Nome: `ra-connect`
-   - Região: **South America (São Paulo)**
-   - Anote a senha do banco em local seguro.
-2. Quando o projeto terminar de criar: **SQL Editor → New query**, cole **todo** o conteúdo de [supabase/schema.sql](../supabase/schema.sql) e clique **Run**. Deve aparecer "Success".
-3. **Authentication → Sign In / Providers → Email**: desligue **Allow new users to sign up** (só entra quem vocês cadastrarem).
-4. **Authentication → Users → Add user → Create new user**:
-   - Crie **primeiro o login do Dr. Rômulo** (e-mail + senha) e marque **Auto Confirm User**.
-   - O primeiro login criado vira **administrador** automaticamente.
-5. **Project Settings → API**: copie a **Project URL** e a **anon public key**. Vai usar no passo 2.
+   ```sql
+   insert into plataforma_admins (auth_id, email, nome)
+   select id, email, 'Equipe Spartacus' from auth.users where email = 'SEU@EMAIL';
+   ```
 
-## 2. Publicar o site (Vercel)
+5. Anote em Project Settings → API: a URL, a chave pública (anon/publishable) e a chave secreta (sb_secret_…).
 
-1. Entre em **vercel.com** → **Add New… → Project**.
-2. Escolha o repositório **ra-connect** → **Import**. (Se ele não aparecer, clique em *Adjust GitHub App Permissions* e libere o repositório.)
-3. Framework: **Vite** (detecta sozinho). Abra **Environment Variables** e cadastre:
+## 2. DNS do domínio da plataforma
 
-   | Nome | Valor |
-   |---|---|
-   | `VITE_SUPABASE_URL` | Project URL do passo 1.5 |
-   | `VITE_SUPABASE_ANON_KEY` | anon public key do passo 1.5 |
+No domínio escolhido (ex.: `spartacus.adv.br`), aponte para o IP da VPS:
 
-4. Clique **Deploy**. Ao terminar, a Vercel mostra o endereço (algo como `ra-connect.vercel.app`).
-5. Volte ao Supabase → **Authentication → URL Configuration** e coloque esse endereço em **Site URL**. (É para onde o link de "Esqueci a senha" leva.)
+- `A  @  → IP`
+- `A  *  → IP` (todos os subdomínios dos escritórios)
 
-> O plano gratuito da Vercel (Hobby) não permite uso comercial. Para uso definitivo no escritório, mude para o **Pro**.
+## 3. Servidor (VPS com Docker)
 
-## 3. Primeiro acesso
+```bash
+VPS=root@IP bash infra/spartacus/publicar.sh      # no computador: envia o código
+ssh root@IP
+cd /opt/spartacus/infra/spartacus
+cp .env.example .env                    # DOMINIO_PLATAFORMA, EMAIL_SSL, EVOLUTION_API_KEY
+cp spartacus.env.example spartacus.env  # SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SECRET_KEY…
+docker compose up -d --build
+```
 
-1. Abra o endereço da Vercel e entre com o login do Dr. Rômulo.
-2. O sistema começa **vazio**. Se quiser aproveitar o que foi testado no modo local, use **Configurações → Dados → Importar backup**.
-3. Cadastre os feriados municipais em **Configurações → Feriados locais** (São Luís, Tomé-Açu, Breves).
+O Caddy emite o HTTPS sozinho: o do domínio principal na hora, e o de cada subdomínio ou domínio próprio de escritório no primeiro acesso (só para endereços que existem no cadastro).
 
-## 4. Dar acesso à equipe
+## 4. Conferir
 
-1. No Supabase: **Authentication → Users → Add user** (e-mail + senha, marque **Auto Confirm User**).
-2. No RA Connect: **Configurações → Equipe e acessos** → troque "Aguardando liberação" por **Equipe** (ou **Advogado**, para quem também administra).
-3. A pessoa entra com o e-mail e a senha criados. Pode trocar a senha pelo "Esqueci a senha".
+- `https://SEU_DOMINIO` abre a página do Spartacus; entre com o seu login → aparece a **Plataforma**.
+- Crie um escritório de teste e abra `https://teste.SEU_DOMINIO`: a tela de entrada já vem com a marca dele.
+- No computador, `npm run test:banco` confere as regras de isolamento do banco a cada mudança no schema.
 
-Papéis:
-- **Advogado:** tudo, inclusive liberar acessos e consultar qualquer CPF de cliente.
-- **Equipe:** tudo do dia a dia; consulta por CPF só dos clientes sob sua responsabilidade.
-- **Cliente / Bloqueado / Aguardando:** não entram nos dados do escritório (o portal do cliente fica para uma próxima etapa).
+## Atualizar
 
-## 5. Integrações pagas (quando contratar)
-
-Em Vercel → **Settings → Environment Variables**, adicione as chaves do [.env.example](../.env.example) (ex.: `JUDIT_API_KEY` e `CPF_CONSULTA_HABILITADA=1`) e clique **Redeploy**.
+Cada nova versão: commit e `VPS=root@IP bash infra/spartacus/publicar.sh`. Mudou o `schema.sql`? Rode de novo no SQL Editor.

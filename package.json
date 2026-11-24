@@ -1,8 +1,8 @@
 {
-  "name": "ra-connect",
+  "name": "spartacus",
   "private": true,
-  "version": "0.1.0",
-  "description": "RA Connect — software jurídico da RA Costa Advocacia & Consultoria",
+  "version": "1.0.0",
+  "description": "Spartacus — software jurídico SaaS white label para escritórios de advocacia",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "normas:atualizar": "node scripts/baixar-normas.mjs"
+    "normas:atualizar": "node scripts/baixar-normas.mjs",
+    "test:banco": "node scripts/testar-banco.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.45.4",
@@ -23,6 +24,7 @@
     "react-router-dom": "6.28.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "@types/node": "22.10.2",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",

@@ -1,4 +1,4 @@
-// Cliente das rotas /api do próprio RA Connect.
+// Cliente das rotas /api do próprio Spartacus.
 import { obter, usuarioAtual } from './store';
 import { tokenAtual } from './nuvem';
 

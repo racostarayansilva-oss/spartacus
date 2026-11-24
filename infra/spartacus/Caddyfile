@@ -1,0 +1,35 @@
+# Spartacus — proxy com HTTPS automático.
+# * Plataforma: {$DOMINIO_PLATAFORMA} e app.{$DOMINIO_PLATAFORMA}
+# * Escritórios: <slug>.{$DOMINIO_PLATAFORMA} e domínios próprios (CNAME para a plataforma)
+# Os certificados de subdomínios e domínios próprios são emitidos sob demanda, só depois de o
+# Spartacus confirmar que o domínio pertence a um escritório (/interno/dominio-permitido).
+{
+	email {$EMAIL_SSL}
+	on_demand_tls {
+		ask http://spartacus:3000/interno/dominio-permitido
+	}
+}
+
+(app) {
+	encode zstd gzip
+	# A rota interna nunca é servida para fora
+	@interno path /interno/*
+	respond @interno 404
+	reverse_proxy spartacus:3000
+}
+
+{$DOMINIO_PLATAFORMA}, app.{$DOMINIO_PLATAFORMA} {
+	import app
+}
+
+www.{$DOMINIO_PLATAFORMA} {
+	redir https://{$DOMINIO_PLATAFORMA}{uri} permanent
+}
+
+# Subdomínios dos escritórios e domínios próprios
+https:// {
+	tls {
+		on_demand
+	}
+	import app
+}

@@ -125,7 +125,7 @@ export async function textoArtigo(urn: string, art: string): Promise<TextoDispos
   const t = setTimeout(() => ctrl.abort(), 45_000);
   let html = '';
   try {
-    const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'RA-Connect/0.1' } });
+    const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Spartacus/1.0' } });
     if (!r.ok) throw new ErroApi(502, `normas.leg.br respondeu ${r.status} ao baixar o texto.`);
     html = new TextDecoder('utf-8').decode(await r.arrayBuffer());
   } finally {
@@ -203,7 +203,7 @@ export async function textoCompleto(urn: string): Promise<TextoCompleto> {
     const t = setTimeout(() => ctrl.abort(), 45_000);
     let html = '';
     try {
-      const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'RA-Connect/0.1' } });
+      const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Spartacus/1.0' } });
       if (!r.ok) throw new ErroApi(502, `normas.leg.br respondeu ${r.status} ao baixar o texto.`);
       html = new TextDecoder('utf-8').decode(await r.arrayBuffer());
     } finally {

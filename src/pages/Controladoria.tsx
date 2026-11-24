@@ -11,7 +11,10 @@ import { Campo, Segmentos, Topo, Vazio } from '../components/ui';
 import { MonitorAutomatico } from '../components/MonitorAutomatico';
 
 export function opcoesCalendario(b: Banco) {
-  return { ufs: ['MA', 'PA'] as ('MA' | 'PA')[], extras: b.config.feriadosExtras };
+  // Estados do escritório = UFs das OABs cadastradas. Feriados estaduais embutidos: MA e PA; os demais estados
+  // entram como feriados cadastrados (Prazos e agenda → feriados) na implantação.
+  const ufs = [...new Set((b.config.oabs || []).map((o) => o.uf.toUpperCase()))];
+  return { ufs, extras: b.config.feriadosExtras };
 }
 
 export default function Controladoria() {

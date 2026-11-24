@@ -21,7 +21,7 @@ export interface Feriado {
 
 export interface OpcoesCalendario {
   /** UFs cujos feriados estaduais entram na conta */
-  ufs?: ('MA' | 'PA')[];
+  ufs?: string[];
   /** Feriados forenses da Justiça Federal (Lei 5.010/66, art. 62). Padrão: true */
   forense?: boolean;
   /** Feriados municipais, pontos facultativos e suspensões cadastrados pelo escritório */

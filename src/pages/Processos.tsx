@@ -33,7 +33,7 @@ export default function Processos() {
   useEffect(() => { if (etiquetaNaUrl) { setEtiqueta(etiquetaNaUrl); setAba('processos'); } }, [etiquetaNaUrl]);
   const [importar, setImportar] = useState(false);
   const [importarLegis, setImportarLegis] = useState(false);
-  const [novo, setNovo] = useState(false);
+  const [novo, setNovo] = useState(() => new URLSearchParams(window.location.search).get('novo') === '1');
   const nav = useNavigate();
   const importacoes = b.config.importacoes || [];
   // Só muda quando processos ou intimações mudam
@@ -116,7 +116,7 @@ function ListaProcessos({ b, etiqueta, aoMudarEtiqueta }: { b: Banco; etiqueta: 
           </select>
           <span className="etiqueta">Processos encontrados <strong className="num" style={{ color: 'var(--primario)' }}>{lista.length}</strong></span>
           <button className="btn pequeno" disabled={!lista.length} title="Baixa os processos desta lista (com os filtros aplicados)"
-            onClick={() => baixarXlsx(`processos-ra-connect-${hoje()}.xlsx`, [abaProcessos(b, lista.map((x) => x.p), ultimaMovimentacao)])}>
+            onClick={() => baixarXlsx(`processos-${hoje()}.xlsx`, [abaProcessos(b, lista.map((x) => x.p), ultimaMovimentacao)])}>
             Exportar Excel
           </button>
         </div>

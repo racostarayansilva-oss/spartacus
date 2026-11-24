@@ -1,8 +1,8 @@
 # Serviços a contratar para ter os mesmos dados dos concorrentes
 
-Levantamento feito em 04/11/2026 para o RA Connect. Compara o que Legis, Astrea (Aurum), ADVBox e Tramitação Inteligente entregam com o que precisamos contratar para obter o mesmo tipo de informação.
+Levantamento feito em 04/11/2026 para o Spartacus. Compara o que Legis, Astrea (Aurum), ADVBox e Tramitação Inteligente entregam com o que precisamos contratar para obter o mesmo tipo de informação.
 
-**Resumo:** boa parte dos dados é pública e gratuita e já está ligada no RA Connect (DJEN, DataJud, normas.leg.br, Câmara, Senado, STJ, TST, TCU, CARF). Para chegar ao nível dos concorrentes faltam **cinco contratações**:
+**Resumo:** boa parte dos dados é pública e gratuita e já está ligada no Spartacus (DJEN, DataJud, normas.leg.br, Câmara, Senado, STJ, TST, TCU, CARF). Para chegar ao nível dos concorrentes faltam **cinco contratações**:
 
 | # | Serviço | Para quê | Prioridade |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Opcionais: assinatura eletrônica (ZapSign, Clicksign ou D4Sign), cobrança por 
 
 ## 1. O que cada concorrente entrega e de onde vem o dado
 
-| Dado | Quem tem | De onde vem | Como o RA Connect obtém |
+| Dado | Quem tem | De onde vem | Como o Spartacus obtém |
 |---|---|---|---|
 | **Intimações / publicações** | ADVBox, Astrea, Legis, Tramitação | Diários oficiais. Desde a Resolução CNJ 455/2022 o **DJEN** é o meio oficial de intimação nos tribunais integrados | **DJEN (CNJ), gratuito, já integrado** (busca por OAB/MA 14.427 e OAB/PA 30.733). Diários que ainda não publicam no DJEN: cobertos pelo serviço do item 1 |
 | **Andamentos processuais** | Astrea, Legis, Tramitação | Robôs que leem PJe, eproc, Projudi etc., ou bases agregadas | **DataJud, gratuito, já integrado**, mas atualiza com dias de atraso e não avisa sozinho. Para aviso automático: **Judit ou Escavador** (item 1) |
@@ -39,22 +39,22 @@ Opcionais: assinatura eletrônica (ZapSign, Clicksign ou D4Sign), cobrança por 
 - **Judit:** consulta assíncrona por CPF, CNPJ, OAB ou número; tem monitoramento. Cobrança por consulta e por processo monitorado.
 - **Escavador API v2:** busca por CPF/CNPJ (`/envolvido/processos`), monitoramento de processos e de diários. Cobrança por crédito.
 - **O que pedir na negociação:** preço por consulta de CPF, preço por processo monitorado/mês, cobertura de TRF1, TJMA, TJPA e TRT8/TRT16, e se o aviso chega por *webhook*.
-- **No RA Connect:** preencher `JUDIT_API_KEY` ou `ESCAVADOR_TOKEN` e `CPF_CONSULTA_HABILITADA=1` na Vercel.
+- **No Spartacus:** preencher `JUDIT_API_KEY` ou `ESCAVADOR_TOKEN` e `CPF_CONSULTA_HABILITADA=1` na Vercel.
 
 ### 2.2 WhatsApp Business Platform
 - **Oficial (recomendado):** Cloud API da Meta, direto pelo Meta Business ou por um parceiro (BSP) como 360dialog, Twilio ou Gupshup. Cobra por conversa/mensagem de modelo; responder ao cliente dentro de 24 h é a parte mais barata.
 - **Não oficiais (Z-API, Evolution API):** mais baratos, mas usam o WhatsApp Web e podem ter o número **banido**. Não recomendo para o número principal do escritório.
 - **Requisitos:** CNPJ, Meta Business verificado, número dedicado (pode migrar o atual, mas ele sai do app comum).
-- **No RA Connect:** falta criar a rota `/api/whatsapp/webhook` que recebe as mensagens; a classificação, a resposta pronta e os alarmes já estão prontos.
+- **No Spartacus:** falta criar a rota `/api/whatsapp/webhook` que recebe as mensagens; a classificação, a resposta pronta e os alarmes já estão prontos.
 
 ### 2.3 Supabase Pro e Vercel Pro
 - **Supabase:** vocês já usam no gestao-escritorio. O plano Pro dá backup diário e não pausa o projeto. Região São Paulo (LGPD). O esquema está em `supabase/schema.sql`.
 - **Vercel:** o plano gratuito (Hobby) **proíbe uso comercial** e limita funções a 60 s. O Pro libera os dois (a consulta do Jusneural pode levar até 120 s).
 
 ### 2.4 E-mail com recebimento automático (INSS)
-- Criar um endereço como `inss@seudominio.com.br`, cadastrar como e-mail de contato nos requerimentos do Meu INSS, e mandar cada e-mail recebido para o RA Connect.
+- Criar um endereço como `inss@seudominio.com.br`, cadastrar como e-mail de contato nos requerimentos do Meu INSS, e mandar cada e-mail recebido para o Spartacus.
 - Opções: Cloudflare Email Routing + Worker (praticamente gratuito), Postmark Inbound ou SendGrid Inbound Parse.
-- O RA Connect lê o e-mail, identifica NB/protocolo e cria a exigência com prazo de 30 dias corridos (IN 212/2026).
+- O Spartacus lê o e-mail, identifica NB/protocolo e cria a exigência com prazo de 30 dias corridos (IN 212/2026).
 
 ### 2.5 API do Claude
 - Melhora o que hoje é feito por regras: classificar mensagens com linguagem informal, ler o texto da intimação e sugerir o prazo, resumir CNIS, gerar rascunho de resposta.

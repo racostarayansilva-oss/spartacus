@@ -5,7 +5,7 @@ const resposta = (status: number, corpo: unknown) => ({ ok: status < 400, status
 
 afterEach(() => { vi.unstubAllGlobals(); delete process.env.DEEPSEEK_API_KEY; });
 
-describe('Resumo de fala (RA Speak)', () => {
+describe('Resumo de fala (Ditado)', () => {
   it('sem texto rejeita', async () => {
     process.env.DEEPSEEK_API_KEY = 'x';
     await expect(resumirFala('   ')).rejects.toThrow(/Grave algo/);

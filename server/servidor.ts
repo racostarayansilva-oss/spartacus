@@ -1,5 +1,5 @@
 // Servidor próprio (VPS): entrega o site (pasta dist) e atende /api/* com as mesmas rotas da Vercel.
-// Uso: node servidor.mjs   (porta em PORT, padrão 3000). As variáveis vêm do ambiente (ver infra/crm/ra-connect.env.example).
+// Uso: node servidor.mjs   (porta em PORT, padrão 3000). As variáveis vêm do ambiente (ver infra/spartacus/spartacus.env.example).
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize, sep } from 'node:path';
@@ -120,10 +120,39 @@ function estatico(req: IncomingMessage, res: ServerResponse, url: URL) {
   res.end(req.method === 'HEAD' ? undefined : indexHtml());
 }
 
+/**
+ * Caddy (on-demand TLS) pergunta aqui antes de emitir certificado: libera os subdomínios da plataforma
+ * (slug.DOMINIO_PLATAFORMA) e os domínios próprios cadastrados para um escritório. Só a rede interna chama.
+ */
+export async function dominioPermitido(dominio: string): Promise<boolean> {
+  const d = dominio.trim().toLowerCase();
+  if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(d)) return false;
+  const base = (env('DOMINIO_PLATAFORMA') || '').toLowerCase();
+  if (base && (d === base || d === `www.${base}` || d === `app.${base}`)) return true;
+  if (base && d.endsWith(`.${base}`) && /^[a-z0-9-]+$/.test(d.slice(0, -base.length - 1))) {
+    // Subdomínio: só se existir escritório com esse slug
+    const r = await fetch(`${(env('SUPABASE_URL') || env('VITE_SUPABASE_URL')).replace(/\/$/, '')}/rest/v1/rpc/marca_publica`, {
+      method: 'POST', headers: { apikey: env('SUPABASE_ANON_KEY') || env('VITE_SUPABASE_ANON_KEY'), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_host: d }), signal: AbortSignal.timeout(10_000),
+    }).catch(() => null);
+    return !!r?.ok && (await r.json().catch(() => null)) != null;
+  }
+  const r = await fetch(`${(env('SUPABASE_URL') || env('VITE_SUPABASE_URL')).replace(/\/$/, '')}/rest/v1/rpc/dominio_permitido`, {
+    method: 'POST', headers: { apikey: env('SUPABASE_ANON_KEY') || env('VITE_SUPABASE_ANON_KEY'), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_host: d }), signal: AbortSignal.timeout(10_000),
+  }).catch(() => null);
+  return !!r?.ok && (await r.json().catch(() => false)) === true;
+}
+
 const servidor = createServer(async (req, res) => {
   const url = new URL(req.url || '/', 'http://localhost');
   try {
     if (url.pathname === '/saude') return json(res, 200, { ok: true });
+    if (url.pathname === '/interno/dominio-permitido') {
+      const ok = await dominioPermitido(url.searchParams.get('domain') || '');
+      res.writeHead(ok ? 200 : 404, { 'Content-Type': 'text/plain' });
+      return res.end(ok ? 'ok' : 'nao');
+    }
     if (url.pathname === '/config.js') {
       res.writeHead(200, { 'Content-Type': TIPOS['.js'], 'Cache-Control': 'no-cache', ...SEGURANCA });
       return res.end(configJs());
@@ -140,7 +169,7 @@ const servidor = createServer(async (req, res) => {
 
 servidor.requestTimeout = 120_000;
 servidor.listen(PORTA, () => {
-  console.log(`RA Connect no ar na porta ${PORTA} (site em ${PASTA})`);
+  console.log(`Spartacus no ar na porta ${PORTA} (site em ${PASTA})`);
   iniciarMonitor();
 });
 

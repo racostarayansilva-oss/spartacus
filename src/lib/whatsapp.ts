@@ -41,7 +41,7 @@ export interface DadosResposta {
   assinatura?: string;
 }
 
-const ASSINATURA_PADRAO = 'RA Costa Advocacia & Consultoria';
+const ASSINATURA_PADRAO = 'Equipe do escritório';
 
 export function respostaPronta(cat: CategoriaMensagem, d: DadosResposta): string {
   const primeiroNome = d.nomeCliente.split(' ')[0];

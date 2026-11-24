@@ -35,7 +35,7 @@ export function gerarEmailCliente(nome: string, dominio: string, emUso: Set<stri
 
 /** Código do Email Worker do Cloudflare, já com o endereço do app e a chave. */
 export function codigoWorker(urlApi: string, chave: string): string {
-  return `// RA Connect: entrega os e-mails dos clientes ao app.
+  return `// Spartacus: entrega os e-mails dos clientes ao app.
 export default {
   async email(message) {
     const bytes = new Uint8Array(await new Response(message.raw).arrayBuffer()).subarray(0, 3000000);
@@ -46,7 +46,7 @@ export default {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chave: ${JSON.stringify(chave)}, para: message.to, de: message.from, raw: btoa(bin) }),
     });
-    if (!r.ok) throw new Error('RA Connect respondeu ' + r.status + ': ' + (await r.text()));
+    if (!r.ok) throw new Error('Spartacus respondeu ' + r.status + ': ' + (await r.text()));
   },
 };
 `;

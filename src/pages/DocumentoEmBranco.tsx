@@ -6,9 +6,10 @@ import { Modal, Topo } from '../components/ui';
 import { Icone } from '../components/icones';
 import { useBanco } from '../store';
 import { CABECALHO, preencher } from '../lib/modelos';
-import { imprimirDocumento, MONOGRAMA_RA } from '../lib/modelosEstilo';
+import { imprimirDocumento, marcaDagua } from '../lib/modelosEstilo';
+import { useDadosDocumento } from '../dadosDocumento';
 
-const CHAVE_RASCUNHO = 'ra-connect:rascunho-documento';
+const CHAVE_RASCUNHO = 'spartacus:rascunho-documento';
 const VAZIO = '<p><br></p>';
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
@@ -31,6 +32,7 @@ function lerRascunho(): { titulo: string; html: string } | null {
 
 export default function DocumentoEmBranco({ aoVoltar }: { aoVoltar: () => void }) {
   const rascunho = useMemo(lerRascunho, []);
+  const dadosDoc = useDadosDocumento();
   const [titulo, setTitulo] = useState(rascunho?.titulo || 'Novo documento');
   const editor = useRef<HTMLDivElement>(null);
   const selecao = useRef<Range | null>(null);
@@ -168,7 +170,7 @@ export default function DocumentoEmBranco({ aoVoltar }: { aoVoltar: () => void }
             {ferr('Aumentar recuo', 'recuo-mais', 'indent')}
           </div>
           <div className="grupo">
-            {ferr('Cabeçalho do escritório', 'detalhe', () => inserir(CABECALHO + VAZIO))}
+            {ferr('Cabeçalho do escritório', 'detalhe', () => inserir(preencher({ id: 'cab', nome: '', descricao: '', html: CABECALHO }, {}, dadosDoc) + VAZIO))}
             {ferr('Qualificação do cliente', 'clientes', () => setEscolherCliente(true))}
             {ferr('Local e data de hoje', 'calendario', () => inserir(`<p class="local-data" style="text-align:right">São Luís (MA), ${hojeExtenso()}.</p>`))}
             {ferr('Linha de assinatura', 'assinatura', () => inserir('<div class="linha-assinatura">______________________________________________</div><div class="legenda-assinatura">NOME</div>' + VAZIO))}
@@ -182,7 +184,7 @@ export default function DocumentoEmBranco({ aoVoltar }: { aoVoltar: () => void }
 
         <div className="editor-mesa">
           <div className="editor-folha">
-            <div className="editor-marca" aria-hidden="true" dangerouslySetInnerHTML={{ __html: MONOGRAMA_RA }} />
+            <div className="editor-marca" aria-hidden="true" dangerouslySetInnerHTML={{ __html: marcaDagua() }} />
             <div
               ref={editor}
               className={`editor-conteudo${vazio ? ' vazio' : ''}`}
@@ -215,6 +217,7 @@ export default function DocumentoEmBranco({ aoVoltar }: { aoVoltar: () => void }
 
 function EscolherCliente({ aoFechar, aoEscolher }: { aoFechar: () => void; aoEscolher: (html: string) => void }) {
   const b = useBanco();
+  const dadosDoc = useDadosDocumento();
   const [busca, setBusca] = useState('');
   const q = busca.trim().toLowerCase();
   const digitos = q.replace(/\D/g, '');
@@ -226,7 +229,7 @@ function EscolherCliente({ aoFechar, aoEscolher }: { aoFechar: () => void; aoEsc
       <ul className="lista escolha-cliente">
         {lista.map((c) => (
           <li key={c.id}>
-            <button type="button" onClick={() => aoEscolher(preencher(QUALIFICACAO, c))}>
+            <button type="button" onClick={() => aoEscolher(preencher(QUALIFICACAO, c, dadosDoc))}>
               <strong>{c.nome}</strong>
               <span className="mono mudo">{c.cpf}</span>
             </button>

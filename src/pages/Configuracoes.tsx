@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { alterar, Corretor, exportarJson, importarJson, MODO_NUVEM, novoId, Papel, restaurarExemplo, useBanco, usuarioAtual } from '../store';
-import { alterarPerfil, listarPerfis, Perfil, PapelPerfil } from '../nuvem';
+import { AcessoAutorizado, alterarPerfil, autorizarAcesso, listarAcessos, listarPerfis, Perfil, PapelPerfil, removerAcesso } from '../nuvem';
+import { DadosDocumentos, MarcaEscritorio } from '../components/MarcaEscritorio';
 import { cpfValido } from '../lib/cpf';
 
 const ROTULO_PAPEL: Record<PapelPerfil, string> = {
@@ -13,8 +14,28 @@ function EquipeNuvem() {
   const souAdvogado = usuarioAtual(b)?.papel === 'advogado';
   const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [erro, setErro] = useState('');
-  const carregar = () => listarPerfis().then(setPerfis).catch((e) => setErro(e.message));
+  const [acessos, setAcessos] = useState<AcessoAutorizado[]>([]);
+  const [novo, setNovo] = useState<AcessoAutorizado>({ email: '', nome: '', papel: 'equipe' });
+  const [aviso, setAviso] = useState('');
+  const carregar = () => {
+    listarPerfis().then(setPerfis).catch((e) => setErro(e.message));
+    if (souAdvogado) listarAcessos().then(setAcessos).catch(() => {});
+  };
   useEffect(() => { carregar(); }, []);
+  const comLogin = new Set(perfis.map((p) => (p.email || '').toLowerCase()));
+  const aguardando = acessos.filter((a) => !comLogin.has(a.email));
+
+  const liberar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErro(''); setAviso('');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(novo.email.trim())) return setErro('E-mail inválido.');
+    try {
+      await autorizarAcesso(novo);
+      setAviso(`${novo.email.trim()} liberado. Envie o endereço ${window.location.origin} e peça para clicar em “Primeiro acesso? Criar senha”.`);
+      setNovo({ email: '', nome: '', papel: 'equipe' });
+      carregar();
+    } catch (er: any) { setErro(er.message); }
+  };
 
   const mudar = async (p: Perfil, m: Partial<Perfil>) => {
     setErro('');
@@ -28,10 +49,34 @@ function EquipeNuvem() {
   return (
     <div className="cartao">
       <h3>Equipe e acessos</h3>
-      <p className="mudo" style={{ marginTop: 0 }}>
-        Para dar acesso a alguém: no Supabase, vá em Authentication → Users → Add user (marque “Auto Confirm User”). A pessoa aparece aqui como “Aguardando liberação”.
-      </p>
+      {souAdvogado && (
+        <form onSubmit={liberar} className="linha-form" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 12 }}>
+          <label className="campo" style={{ flex: '2 1 200px' }}>E-mail<input type="email" value={novo.email} onChange={(e) => setNovo({ ...novo, email: e.target.value })} required /></label>
+          <label className="campo" style={{ flex: '2 1 160px' }}>Nome<input value={novo.nome} onChange={(e) => setNovo({ ...novo, nome: e.target.value })} required /></label>
+          <label className="campo" style={{ flex: '1 1 140px' }}>Papel
+            <select value={novo.papel} onChange={(e) => setNovo({ ...novo, papel: e.target.value as AcessoAutorizado['papel'] })}>
+              <option value="equipe">Equipe</option><option value="advogado">Advogado (administrador)</option><option value="cliente">Cliente</option>
+            </select>
+          </label>
+          <button className="btn primario" type="submit">Liberar acesso</button>
+        </form>
+      )}
+      {aviso && <div className="aviso" role="status" style={{ marginBottom: 10 }}>{aviso}</div>}
       {erro && <div className="erro">{erro}</div>}
+      {aguardando.length > 0 && (
+        <>
+          <p className="mudo" style={{ margin: '4px 0' }}>Liberados, ainda sem senha criada:</p>
+          <ul className="lista">
+            {aguardando.map((a) => (
+              <li key={a.email}>
+                <span style={{ flex: 1 }}><strong>{a.nome}</strong><div className="mudo">{a.email}</div></span>
+                <span className="etiqueta ambar">{ROTULO_PAPEL[a.papel]}</span>
+                <button className="btn pequeno fantasma" onClick={async () => { await removerAcesso(a.email).catch((e) => setErro(e.message)); carregar(); }}>Cancelar</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <ul className="lista">
         {perfis.map((p) => (
           <li key={p.auth_id} style={{ flexWrap: 'wrap' }}>
@@ -109,8 +154,8 @@ function EmailsClientesConfig() {
             <li>O domínio (ou o domínio principal do subdomínio) precisa estar no Cloudflare.</li>
             <li>No Cloudflare: <b>Email → Email Routing</b> → ative para o domínio acima (ele cria os registros MX).</li>
             <li>Clique em <b>Gerar chave e código</b> aqui embaixo e copie o código.</li>
-            <li>No Cloudflare: <b>Workers &amp; Pages → Create → Worker</b>, dê o nome <span className="mono">ra-connect-emails</span>, apague o código de exemplo, cole o copiado e clique em <b>Deploy</b>.</li>
-            <li>Volte em <b>Email Routing → Routing rules → Catch-all address</b>: ação <b>Send to a Worker</b>, escolha <span className="mono">ra-connect-emails</span> e ative.</li>
+            <li>No Cloudflare: <b>Workers &amp; Pages → Create → Worker</b>, dê o nome <span className="mono">spartacus-emails</span>, apague o código de exemplo, cole o copiado e clique em <b>Deploy</b>.</li>
+            <li>Volte em <b>Email Routing → Routing rules → Catch-all address</b>: ação <b>Send to a Worker</b>, escolha <span className="mono">spartacus-emails</span> e ative.</li>
             <li>Teste: gere o e-mail de um cliente, mande uma mensagem para ele e veja em E-mails dos clientes.</li>
           </ol>
           <button className="btn" onClick={gerar}><Icone nome="chave" tamanho={15} />{codigo ? 'Gerar outra chave' : 'Gerar chave e código'}</button>
@@ -142,7 +187,7 @@ export default function Configuracoes() {
     const blob = new Blob([exportarJson()], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `ra-connect-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `spartacus-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
   };
 
@@ -201,6 +246,8 @@ export default function Configuracoes() {
           </ul>
         </div>
 
+        {MODO_NUVEM && <MarcaEscritorio />}
+        <DadosDocumentos />
         {MODO_NUVEM ? <EquipeNuvem /> : <div className="cartao">
           <h3>Equipe</h3>
           <ul className="lista">{b.usuarios.map((u) => <li key={u.id}><span>{u.nome}</span><span className="etiqueta">{u.papel}</span></li>)}</ul>

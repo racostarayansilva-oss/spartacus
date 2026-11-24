@@ -1,20 +1,22 @@
 // CSS único para a pré-visualização e para a página aberta no "Imprimir / PDF".
 
-/** Monograma "RA" da logo do escritório (R grafite, A dourado e os dois traços), sem o fundo escuro. */
-export const MONOGRAMA_RA = `<svg viewBox="6 8 52 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <text x="11" y="42" font-family="Georgia, 'Times New Roman', serif" font-size="32" font-weight="700" fill="#2B2B2B">R</text>
-  <text x="31" y="38" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="#A87C00">A</text>
-  <path d="M10 46 Q26 54 42 47" stroke="#A87C00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-  <path d="M38 47 Q46 44 54 49" stroke="#A87C00" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-</svg>`;
+import { corValida, marcaAtual } from '../marca';
 
-const MARCA_DAGUA = `<div class="marca-dagua">${MONOGRAMA_RA}</div>`;
+/** Marca d'água: o logo do escritório bem clarinho no meio da folha (sem logo, sem marca d'água). */
+export function marcaDagua(): string {
+  const logo = marcaAtual().marca.logo;
+  return logo && /^data:image\//.test(logo) ? `<div class="marca-dagua"><img src="${logo}" alt="" /></div>` : '';
+}
+const corDoTimbre = () => {
+  const c = marcaAtual().marca.corPrimaria;
+  return corValida(c) ? c : '#0131CD';
+};
 
 const escapar = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 /** Página completa do documento. `previa` desenha a folha A4 na tela; sem ela, sai pronta para imprimir. */
 export function documentoHtml(titulo: string, corpo: string, previa = false): string {
-  const conteudo = `${MARCA_DAGUA}<div class="conteudo">${corpo}</div>`;
+  const conteudo = `${marcaDagua()}<div class="conteudo">${corpo}</div>`;
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapar(titulo)}</title><style>${estiloImpressao()}</style></head><body>${previa ? `<div class="folha">${conteudo}</div>` : conteudo}</body></html>`;
 }
 
@@ -35,9 +37,9 @@ export function estiloImpressao(): string {
     * { box-sizing: border-box; }
     body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #111; margin: 0; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .marca-dagua { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0; }
-    .marca-dagua svg { width: 125mm; max-width: 80%; opacity: 0.07; }
+    .marca-dagua img { width: 110mm; max-width: 70%; opacity: 0.06; }
     .conteudo { position: relative; z-index: 1; }
-    .cabecalho { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #bfa14a; padding-bottom: 8px; margin-bottom: 20px; }
+    .cabecalho { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid ${corDoTimbre()}; padding-bottom: 8px; margin-bottom: 20px; }
     .cabecalho img { height: 56px; }
     .cabecalho .contato { font-size: 10pt; text-align: right; color: #333; }
     h1 { text-align: center; font-size: 14pt; text-transform: uppercase; margin: 16px 0 24px; letter-spacing: 0.5px; }

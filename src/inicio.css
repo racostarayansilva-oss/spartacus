@@ -1,18 +1,18 @@
 /* Página inicial pública e telas de acesso (login, nova senha…).
-   Sempre no grafite da marca, com o amarelo só como destaque. Títulos em serifa, como o monograma RA. */
+   Fundo escuro derivado da cor da marca do escritório, com a cor de destaque só nos realces. */
 
 .pub, .acesso {
-  --pub-fundo: #0b0e11;
-  --pub-superficie: #14181d;
-  --pub-superficie-2: #1b2027;
+  --pub-fundo: color-mix(in srgb, var(--lateral) 82%, #000);
+  --pub-superficie: color-mix(in srgb, var(--lateral) 88%, #fff);
+  --pub-superficie-2: color-mix(in srgb, var(--lateral) 80%, #fff);
   --pub-borda: rgba(255, 255, 255, 0.08);
   --pub-borda-forte: rgba(255, 255, 255, 0.14);
   --pub-texto: #eaecef;
   --pub-texto-2: #a1a8b3;
   --pub-texto-3: #6f7886;
   --pub-cinza: #8a919c;
-  --pub-amarelo: #fcd535;
-  --pub-amarelo-forte: #f0b90b;
+  --pub-amarelo: var(--destaque);
+  --pub-amarelo-forte: var(--destaque);
   --pub-serifa: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   background: var(--pub-fundo);
   color: var(--pub-texto);
@@ -24,7 +24,7 @@
 .pub::before {
   content: ''; position: absolute; inset: 0 0 auto 0; height: 900px; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(600px 340px at 78% 12%, rgba(252, 213, 53, 0.10), transparent 70%),
+    radial-gradient(600px 340px at 78% 12%, color-mix(in srgb, var(--destaque) 14%, transparent), transparent 70%),
     radial-gradient(500px 300px at 8% 0%, rgba(91, 156, 255, 0.06), transparent 70%),
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 100% 56px,
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 56px 100%;
@@ -57,7 +57,7 @@
 }
 .pub-btn:disabled { opacity: 0.6; cursor: progress; transform: none; }
 .pub-btn:focus-visible { outline: 2px solid var(--pub-amarelo); outline-offset: 3px; }
-.pub-btn-primario { background: var(--pub-amarelo); color: #181a20 !important; }
+.pub-btn-primario { background: var(--pub-amarelo); color: var(--sobre-destaque) !important; }
 .pub-btn-primario:hover { background: var(--pub-amarelo-forte); transform: translateY(-1px); }
 .pub-btn-primario span { transition: transform 0.15s; }
 .pub-btn-primario:hover span { transform: translateX(3px); }
@@ -92,7 +92,7 @@
 .pub-janela { background: var(--pub-superficie); border-radius: 0 0 15px 15px; padding: 18px; display: grid; gap: 14px; }
 .pub-intimacao { background: var(--pub-superficie-2); border: 1px solid var(--pub-borda); border-radius: 12px; padding: 16px; }
 .pub-int-cab { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; font-size: 12px; color: var(--pub-texto-2); }
-.pub-tag { background: rgba(252, 213, 53, 0.12); color: var(--pub-amarelo); font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.pub-tag { background: color-mix(in srgb, var(--destaque) 12%, transparent); color: var(--pub-amarelo); font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
 .pub-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; }
 .pub-hoje { margin-left: auto; color: var(--pub-texto-3); }
 .pub-intimacao p { margin: 12px 0 14px; font-size: 14px; line-height: 1.55; color: var(--pub-texto); }
@@ -100,7 +100,7 @@
 .pub-calc div { background: var(--pub-superficie); border-radius: 8px; padding: 9px 10px; min-width: 0; }
 .pub-calc dt { font-size: 11px; color: var(--pub-texto-3); }
 .pub-calc dd { margin: 2px 0 0; font-family: 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pub-calc .fatal { background: rgba(252, 213, 53, 0.1); box-shadow: inset 0 0 0 1px rgba(252, 213, 53, 0.35); }
+.pub-calc .fatal { background: color-mix(in srgb, var(--destaque) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--destaque) 35%, transparent); }
 .pub-calc .fatal dd { color: var(--pub-amarelo); }
 .pub-pulados { margin-top: 10px; font-size: 12px; color: var(--pub-texto-3); }
 
@@ -176,7 +176,7 @@
 .acesso { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; position: relative; overflow: hidden; }
 .acesso::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(520px 320px at 50% 0%, rgba(252, 213, 53, 0.09), transparent 70%);
+  background: radial-gradient(520px 320px at 50% 0%, color-mix(in srgb, var(--destaque) 9%, transparent), transparent 70%);
 }
 .acesso-coluna { position: relative; width: min(400px, 100%); display: grid; gap: 18px; }
 .acesso-voltar { font-size: 13px; color: var(--pub-texto-3) !important; justify-self: start; }
@@ -189,7 +189,7 @@
 .acesso form { display: grid; gap: 14px; }
 .acesso label.campo { color: var(--pub-texto-2); }
 .acesso input { background: var(--pub-fundo); border-color: var(--pub-borda-forte); height: 44px; }
-.acesso input:focus { border-color: var(--pub-amarelo); outline: none; box-shadow: 0 0 0 3px rgba(252, 213, 53, 0.15); }
+.acesso input:focus { border-color: var(--pub-amarelo); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--destaque) 15%, transparent); }
 .acesso-senha { position: relative; }
 .acesso-senha input { padding-right: 72px; }
 .acesso-senha button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--pub-texto-2); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 6px; }

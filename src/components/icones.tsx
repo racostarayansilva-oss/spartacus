@@ -1,4 +1,4 @@
-// Ícones de traço simples (24×24), desenhados para o RA Connect.
+// Ícones de traço simples (24×24), desenhados para o Spartacus.
 const P = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 
 const caminhos: Record<string, JSX.Element> = {

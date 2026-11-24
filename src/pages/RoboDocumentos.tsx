@@ -5,6 +5,7 @@ import { Icone } from '../components/icones';
 import { useBanco, Cliente } from '../store';
 import { MODELOS, preencher, Modelo } from '../lib/modelos';
 import { documentoHtml, imprimirDocumento } from '../lib/modelosEstilo';
+import { useDadosDocumento } from '../dadosDocumento';
 
 type Extras = { honorarios?: string };
 
@@ -27,7 +28,8 @@ export default function RoboDocumentos({ aoVoltar }: { aoVoltar: () => void }) {
     setDados({ ...c });
   };
 
-  const html = useMemo(() => preencher(modelo, dados), [modelo, dados]);
+  const dadosDoc = useDadosDocumento();
+  const html = useMemo(() => preencher(modelo, dados, dadosDoc), [modelo, dados, dadosDoc]);
   const precisaHonorarios = modelo.id === 'procuracao-contrato';
 
   const imprimir = () => {

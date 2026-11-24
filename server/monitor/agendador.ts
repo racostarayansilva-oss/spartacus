@@ -1,4 +1,4 @@
-// Agenda do monitor (horário de Belém). Liga sozinho no servidor próprio quando há SUPABASE_SECRET_KEY;
+// Agenda do monitor (horário de Brasília), para todos os escritórios ativos. Liga sozinho no servidor próprio quando há SUPABASE_SECRET_KEY;
 // MONITOR_ATIVO=0 desliga.
 import { env } from '../http.js';
 import { bancoMonitorConfigurado } from './banco.js';
@@ -14,7 +14,7 @@ export const monitorLigado = () => bancoMonitorConfigurado() && env('MONITOR_ATI
 const feitas = new Set<string>();
 
 function horaBrasil(): number {
-  return Number(new Date().toLocaleString('en-US', { timeZone: 'America/Belem', hour: '2-digit', hour12: false })) % 24;
+  return Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false })) % 24;
 }
 
 function verificar() {
@@ -34,7 +34,7 @@ export function iniciarMonitor() {
     console.log('[monitor] desligado (falta SUPABASE_SECRET_KEY ou MONITOR_ATIVO=0)');
     return;
   }
-  console.log('[monitor] ligado: DJEN às 7h e 13h; DataJud às 6h, 12h e 18h (horário de Belém)');
+  console.log('[monitor] ligado: DJEN às 7h e 13h; DataJud às 6h, 12h e 18h (horário de Brasília)');
   setInterval(verificar, 60_000).unref();
 }
 

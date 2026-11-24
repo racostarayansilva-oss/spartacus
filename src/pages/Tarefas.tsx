@@ -18,7 +18,7 @@ import { cortar, Paginacao, Segmentos, SoDiamante, Stat, TagDiamante, Topo, Vazi
 type Aba = 'geral' | 'lista' | 'quadro' | 'desempenho' | 'config';
 const ABAS: [Aba, string][] = [['geral', 'Visão Geral'], ['lista', 'Lista'], ['quadro', 'Quadro'], ['desempenho', 'Desempenho'], ['config', 'Configurações']];
 
-const CHAVE_PESSOA = 'ra-connect:tarefas:pessoa';
+const CHAVE_PESSOA = 'spartacus:tarefas:pessoa';
 function lerPessoa(): string {
   try { return localStorage.getItem(CHAVE_PESSOA) ?? 'eu'; } catch { return 'eu'; }
 }
@@ -43,7 +43,12 @@ export default function Tarefas() {
   const [mostrarFiltro, setMostrarFiltro] = useState(false);
   const [pessoa, setPessoa] = useState(lerPessoa);
   const [etiqueta, setEtiqueta] = useState('');
-  const [aberta, setAberta] = useState<{ t: Partial<Tarefa>; aba: AbaTarefa } | null>(null);
+  // Link direto da Área de trabalho e da busca: ?tarefa=id abre a atividade; ?nova=1 abre uma nova
+  const [aberta, setAberta] = useState<{ t: Partial<Tarefa>; aba: AbaTarefa } | null>(() => {
+    const t = b.tarefas.find((x) => x.id === params.get('tarefa'));
+    if (t) return { t, aba: 'detalhes' };
+    return params.get('nova') === '1' ? { t: novaTarefa(b), aba: 'detalhes' } : null;
+  });
   const [importando, setImportando] = useState(false);
 
   useEffect(() => { try { localStorage.setItem(CHAVE_PESSOA, pessoa); } catch { /* sem armazenamento */ } }, [pessoa]);

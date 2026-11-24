@@ -143,7 +143,7 @@ export function ImportarOab({ aoFechar }: { aoFechar: () => void }) {
       {fase === 'escolher' && (
         <>
           <p className="mudo" style={{ margin: 0 }}>
-            Busca no DJEN (CNJ) todas as comunicações em que a OAB aparece, junta por número de processo e cria os processos e clientes que ainda não estão no RA Connect. Gratuito.
+            Busca no DJEN (CNJ) todas as comunicações em que a OAB aparece, junta por número de processo e cria os processos e clientes que ainda não estão no Spartacus. Gratuito.
           </p>
           <div>
             <strong style={{ fontSize: '0.88rem' }}>OABs</strong>

@@ -5,7 +5,7 @@ import Inicio from './pages/Inicio';
 import { Icone, Logo } from './components/icones';
 import { alterar, MODO_NUVEM, useBanco, usuarioAtual } from './store';
 import { sair, useNuvem } from './nuvem';
-import { AguardandoLiberacao, Carregando, ErroNuvem, Login, NovaSenha } from './pages/Acesso';
+import { AguardandoLiberacao, Carregando, ErroNuvem, Login, NovaSenha, OutroEscritorio } from './pages/Acesso';
 import Painel from './pages/Painel';
 import WhatsApp from './pages/WhatsApp';
 import Controladoria from './pages/Controladoria';
@@ -28,32 +28,11 @@ import FerramentaPdf from './pages/FerramentaPdf';
 import IndicadoresCnis from './pages/IndicadoresCnis';
 import EmailsClientes from './pages/EmailsClientes';
 import DiretorioSenhas from './pages/DiretorioSenhas';
+import Plataforma from './pages/Plataforma';
 import { SinoNotificacoes } from './components/Notificacoes';
-
-const MENU: [string, string, string][] = [
-  ['/', 'Área de trabalho', 'inicio'],
-  ['/painel', 'Painel', 'painel'],
-  ['/whatsapp', 'WhatsApp', 'whatsapp'],
-  ['/controladoria', 'Controladoria', 'controladoria'],
-  ['/agenda', 'Prazos e agenda', 'agenda'],
-  ['/processos', 'Processos', 'processos'],
-  ['/tarefas', 'Tarefas', 'tarefas'],
-  ['/clientes', 'Clientes', 'clientes'],
-  ['/emails', 'E-mails dos clientes', 'email'],
-  ['/documentos', 'Documentos', 'documentos'],
-  ['/ra-speak', 'RA Speak', 'speak'],
-  ['/producao', 'Produção', 'producao'],
-  ['/financeiro', 'Financeiro', 'financeiro'],
-  ['/normas', 'Normas', 'normas'],
-  ['/cpf', 'Decisões por CPF', 'cpf'],
-  ['/integracoes', 'Integrações', 'integracoes'],
-  ['/senhas', 'Diretório de senhas', 'chave'],
-  ['/crm', 'CRM', 'crm'],
-  ['/config', 'Configurações', 'config'],
-];
-
-// No celular a barra de baixo mostra só os módulos mais usados; o restante fica na Área de trabalho.
-const MENU_MOVEL = ['/', '/painel', '/whatsapp', '/controladoria', '/processos', '/tarefas', '/agenda', '/clientes', '/emails', '/documentos', '/ra-speak', '/producao', '/financeiro', '/normas', '/cpf', '/integracoes', '/crm', '/config'];
+import { BuscaGlobal, NovoRapido } from './components/BarraTopo';
+import { MENU_MOVEL, menuVisivel, rotaLiberada, SECOES, Secao } from './menu';
+import { nomeExibido, useMarca } from './marca';
 
 export default function App() {
   const n = useNuvem();
@@ -70,6 +49,8 @@ export default function App() {
     }
     if (n.fase === 'novaSenha') return <NovaSenha />;
     if (n.fase === 'pendente') return <AguardandoLiberacao email={n.perfil?.email} />;
+    if (n.fase === 'outroEscritorio') return <OutroEscritorio email={n.perfil?.email} />;
+    if (n.fase === 'plataforma') return <Plataforma sozinha />;
     if (n.fase === 'erro') return <ErroNuvem erro={n.erro} />;
   }
   return <Aplicativo />;
@@ -78,6 +59,8 @@ export default function App() {
 function Aplicativo() {
   const b = useBanco();
   const n = useNuvem();
+  const { marca, escritorio } = useMarca();
+  const { pathname } = useLocation();
 
   // Correções de dados pendentes (rodam uma vez, já com os dados do banco carregados)
   const migrou = useRef(false);
@@ -94,40 +77,53 @@ function Aplicativo() {
     else raiz.dataset.theme = 'system';
   }, [b.config.tema]);
 
-  // Integrações (status e testes das APIs) só para a conta de administrador
-  const administrador = usuarioAtual(b)?.papel === 'advogado';
-  const menu = MENU.filter(([to]) => (to !== '/integracoes' && to !== '/senhas') || administrador);
+  const eu = usuarioAtual(b);
+  const administrador = eu?.papel === 'advogado';
+  const desligados = escritorio?.modulos_desligados || [];
+  const menu = menuVisivel(desligados, administrador);
+  const secoes = [...new Set(menu.map((m) => m[3]))] as Secao[];
+  const liberada = rotaLiberada(pathname, desligados);
 
   return (
     <div className="app">
       <aside className="lateral">
         <NavLink to="/" className="marca">
-          <Logo />
+          {marca.logo ? <img src={marca.logo} width={34} height={34} alt="" className="marca-logo" /> : <Logo />}
           <span className="marca-texto">
-            <b>R<span>A</span> CONNECT</b>
-            <small>SOFTWARE JURÍDICO</small>
+            <b>{nomeExibido(marca).toUpperCase()}</b>
+            <small>{(marca.subtitulo || 'SOFTWARE JURÍDICO').toUpperCase()}</small>
           </span>
         </NavLink>
-        <SinoNotificacoes />
         <nav className="nav">
-          {menu.map(([to, rotulo, icone]) => (
-            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'ativo' : '')}>
-              <Icone nome={icone} />
-              {rotulo}
-            </NavLink>
+          {secoes.map((s) => (
+            <div key={s} className="nav-secao">
+              {SECOES[s] && <span className="nav-titulo">{SECOES[s]}</span>}
+              {menu.filter((m) => m[3] === s).map(([to, rotulo, icone]) => (
+                <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'ativo' : '')}>
+                  <Icone nome={icone} />
+                  {rotulo}
+                </NavLink>
+              ))}
+            </div>
           ))}
+          {n.ehPlataforma && (
+            <div className="nav-secao">
+              <span className="nav-titulo">Spartacus</span>
+              <NavLink to="/plataforma" className={({ isActive }) => (isActive ? 'ativo' : '')}><Icone nome="camadas" />Plataforma</NavLink>
+            </div>
+          )}
         </nav>
         <div className="lateral-rodape">
           {MODO_NUVEM ? (
             <>
-              <div style={{ color: '#e4e4ee' }}>{usuarioAtual(b)?.nome}</div>
+              <div className="lateral-usuario">{eu?.nome}</div>
               <div title={n.syncErro}>
-                {n.sync === 'salvando' ? 'Salvando…' : n.sync === 'erro' ? <span style={{ color: '#ff8a80' }}>Erro ao salvar</span> : 'Tudo salvo'}
+                {n.sync === 'salvando' ? 'Salvando…' : n.sync === 'erro' ? <span className="texto-vermelho">Erro ao salvar</span> : 'Tudo salvo'}
               </div>
               <button className="btn pequeno" style={{ marginTop: 8 }} onClick={() => sair()}>Sair</button>
             </>
           ) : (
-            <label className="campo" style={{ color: '#9a9ab0' }}>
+            <label className="campo">
               Usuário (modo de testes)
               <select
                 value={b.config.usuarioAtualId}
@@ -137,48 +133,64 @@ function Aplicativo() {
               </select>
             </label>
           )}
-          <p style={{ marginTop: 10 }}>Plano {b.config.plano === 'diamante' ? 'Diamante' : 'Essencial'}</p>
+          <p className="lateral-produto">Spartacus</p>
         </div>
       </aside>
 
-      <main className="principal">
-        {n.sync === 'erro' && (
-          <div className="erro" style={{ marginBottom: 12 }}>
-            Uma alteração não foi salva no banco ({n.syncErro}). Recarregue a página antes de continuar.
-          </div>
-        )}
-        <Routes>
-          <Route path="/" element={<AreaTrabalho />} />
-          <Route path="/painel" element={<Painel />} />
-          <Route path="/ferramentas/cnis" element={<IndicadoresCnis />} />
-          <Route path="/ferramentas/comprimir" element={<FerramentaPdf key="comprimir" tipo="comprimir" />} />
-          <Route path="/ferramentas/dividir" element={<FerramentaPdf key="dividir" tipo="dividir" />} />
-          <Route path="/ferramentas/imagens" element={<FerramentaPdf key="imagens" tipo="imagens" />} />
-          <Route path="/ferramentas/juntar" element={<FerramentaPdf key="juntar" tipo="juntar" />} />
-          <Route path="/whatsapp" element={<WhatsApp />} />
-          <Route path="/controladoria" element={<Controladoria />} />
-          <Route path="/agenda" element={<Agenda />} />
-          <Route path="/processos" element={<Processos />} />
-          <Route path="/processos/:id" element={<FichaProcesso />} />
-          <Route path="/tarefas" element={<Tarefas />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/documentos" element={<Documentos />} />
-          <Route path="/ra-speak" element={<RaSpeak />} />
-          <Route path="/producao" element={<Producao />} />
-          <Route path="/atividades" element={<Navigate to="/producao" replace />} />
-          <Route path="/relatorios" element={<Navigate to="/producao?aba=mensal" replace />} />
-          <Route path="/financeiro" element={<Financeiro />} />
-          <Route path="/normas" element={<Normas />} />
-          <Route path="/cpf" element={<DecisoesCpf />} />
-          <Route path="/integracoes" element={administrador ? <Integracoes /> : <Navigate to="/" replace />} />
-          <Route path="/emails" element={<EmailsClientes />} />
-          <Route path="/senhas" element={administrador ? <DiretorioSenhas /> : <Navigate to="/" replace />} />
-          <Route path="/crm" element={<Crm />} />
-          <Route path="/config" element={<Configuracoes />} />
-          <Route path="/entrar" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+      <div className="coluna-principal">
+        <header className="barra-topo">
+          <BuscaGlobal />
+          <NovoRapido />
+          <SinoNotificacoes />
+        </header>
+        <main className="principal">
+          {n.sync === 'erro' && (
+            <div className="erro" style={{ marginBottom: 12 }}>
+              Uma alteração não foi salva no banco ({n.syncErro}). Recarregue a página antes de continuar.
+            </div>
+          )}
+          {!liberada ? (
+            <div className="cartao">
+              <h2>Módulo não contratado</h2>
+              <p className="mudo">Este módulo não está ligado para o seu escritório. Fale com o administrador para incluir no plano.</p>
+            </div>
+          ) : (
+            <Routes>
+              <Route path="/" element={<AreaTrabalho />} />
+              <Route path="/painel" element={<Painel />} />
+              <Route path="/ferramentas/cnis" element={<IndicadoresCnis />} />
+              <Route path="/ferramentas/comprimir" element={<FerramentaPdf key="comprimir" tipo="comprimir" />} />
+              <Route path="/ferramentas/dividir" element={<FerramentaPdf key="dividir" tipo="dividir" />} />
+              <Route path="/ferramentas/imagens" element={<FerramentaPdf key="imagens" tipo="imagens" />} />
+              <Route path="/ferramentas/juntar" element={<FerramentaPdf key="juntar" tipo="juntar" />} />
+              <Route path="/whatsapp" element={<WhatsApp />} />
+              <Route path="/controladoria" element={<Controladoria />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/processos" element={<Processos />} />
+              <Route path="/processos/:id" element={<FichaProcesso />} />
+              <Route path="/tarefas" element={<Tarefas />} />
+              <Route path="/clientes" element={<Clientes />} />
+              <Route path="/documentos" element={<Documentos />} />
+              <Route path="/ditado" element={<RaSpeak />} />
+              <Route path="/ra-speak" element={<Navigate to="/ditado" replace />} />
+              <Route path="/producao" element={<Producao />} />
+              <Route path="/atividades" element={<Navigate to="/tarefas" replace />} />
+              <Route path="/relatorios" element={<Navigate to="/producao?aba=mensal" replace />} />
+              <Route path="/financeiro" element={<Financeiro />} />
+              <Route path="/normas" element={<Normas />} />
+              <Route path="/cpf" element={<DecisoesCpf />} />
+              <Route path="/integracoes" element={administrador ? <Integracoes /> : <Navigate to="/" replace />} />
+              <Route path="/emails" element={<EmailsClientes />} />
+              <Route path="/senhas" element={administrador ? <DiretorioSenhas /> : <Navigate to="/" replace />} />
+              <Route path="/crm" element={<Crm />} />
+              <Route path="/config" element={<Configuracoes />} />
+              <Route path="/plataforma" element={n.ehPlataforma ? <Plataforma /> : <Navigate to="/" replace />} />
+              <Route path="/entrar" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          )}
+        </main>
+      </div>
 
       <nav className="barra-movel" aria-label="Navegação">
         <SinoNotificacoes compacto />

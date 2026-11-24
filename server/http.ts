@@ -41,7 +41,7 @@ export async function buscarJson<T = any>(
     const r = await fetch(url, {
       ...resto,
       signal: ctrl.signal,
-      headers: { Accept: 'application/json', 'User-Agent': 'RA-Connect/0.1', ...(resto.headers || {}) },
+      headers: { Accept: 'application/json', 'User-Agent': 'Spartacus/1.0', ...(resto.headers || {}) },
     });
     const texto = await r.text();
     let dados: any;

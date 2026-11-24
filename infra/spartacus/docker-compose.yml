@@ -1,0 +1,46 @@
+# Spartacus no servidor próprio (VPS): app (site + /api + monitor) atrás do Caddy, e a Evolution API
+# para o WhatsApp dos escritórios. O banco é o Supabase (nuvem); a chave secreta fica só em spartacus.env.
+# Uso:  cd infra/spartacus && cp spartacus.env.example spartacus.env && cp .env.example .env  (preencher)
+#       docker compose up -d --build
+name: spartacus
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMINIO_PLATAFORMA: ${DOMINIO_PLATAFORMA}
+      EMAIL_SSL: ${EMAIL_SSL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [spartacus]
+
+  spartacus:
+    build:
+      context: ../..
+    image: spartacus/app:latest
+    restart: unless-stopped
+    env_file: [spartacus.env]
+    environment:
+      DOMINIO_PLATAFORMA: ${DOMINIO_PLATAFORMA}
+    mem_limit: 768m
+
+  # WhatsApp (uma instância por escritório, criada na implantação). Opcional: comente se não usar.
+  evolution-api:
+    image: evoapicloud/evolution-api:v2.2.3
+    restart: unless-stopped
+    environment:
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      DATABASE_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+    volumes:
+      - evolution_instances:/evolution/instances
+    mem_limit: 768m
+
+volumes:
+  caddy_data:
+  caddy_config:
+  evolution_instances:
