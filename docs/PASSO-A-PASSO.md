@@ -1,5 +1,28 @@
 # Colocar a plataforma Spartacus no ar (uma vez só)
 
+## Agora: Vercel
+
+1. Banco: siga o passo **1. Banco (Supabase)** abaixo (projeto do Spartacus, separado do ra-connect).
+2. vercel.com → **Add New → Project** → importe `racostarayansilva-oss/spartacus`. A Vercel detecta Vite; não mude o build.
+3. Em **Environment Variables**:
+   - `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (chave pública; a secreta **nunca** vai na Vercel)
+   - `VITE_DOMINIO_PLATAFORMA` só quando tiver o domínio (ex.: `spartacus.adv.br`)
+   - opcionais, como no ra-connect: `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `DATAJUD_API_KEY`
+4. Deploy. Daí em diante, todo push na `main` publica.
+
+Sem as variáveis do Supabase o site abre em **modo de testes** (dados de exemplo no navegador).
+
+**Endereço dos escritórios na Vercel**
+- Sem domínio: `https://SEU-PROJETO.vercel.app/?escritorio=slug`. A plataforma já mostra esse link.
+- Com domínio: em Project → Settings → Domains, adicione `spartacus.adv.br` e `*.spartacus.adv.br`. Subdomínio coringa na Vercel exige que o domínio use os nameservers da Vercel. Depois preencha `VITE_DOMINIO_PLATAFORMA` e faça um novo deploy.
+- Domínio próprio de um escritório: cadastre na ficha do escritório (Plataforma) **e** em Settings → Domains da Vercel; o escritório cria o CNAME para `cname.vercel-dns.com`.
+
+**O que a Vercel não faz:** o monitor automático (DJEN às 7h/13h e DataJud). Ele roda em lotes longos, por escritório, e só existe no servidor próprio (seção abaixo). Na Vercel, as publicações entram pela busca manual por OAB em Publicações.
+
+---
+
+## Depois: servidor próprio (VPS)
+
 Tudo roda no servidor próprio (VPS), com o banco no Supabase. Depois disso, cada escritório novo é criado pela tela da Plataforma (veja [IMPLANTACAO.md](IMPLANTACAO.md)).
 
 ## 1. Banco (Supabase)

@@ -4,7 +4,7 @@ Software jurídico **SaaS e white label** para escritórios de advocacia. Cada e
 
 Cores do produto: azul `#0131CD`, branco `#FFFFFF` e verde-limão `#B9FC01`.
 
-- Colocar a plataforma no ar: [docs/PASSO-A-PASSO.md](docs/PASSO-A-PASSO.md)
+- Colocar a plataforma no ar (Vercel agora; VPS depois): [docs/PASSO-A-PASSO.md](docs/PASSO-A-PASSO.md)
 - Implantar um escritório (até 3h): [docs/IMPLANTACAO.md](docs/IMPLANTACAO.md)
 - Serviços pagos opcionais: [docs/SERVICOS-A-CONTRATAR.md](docs/SERVICOS-A-CONTRATAR.md)
 
