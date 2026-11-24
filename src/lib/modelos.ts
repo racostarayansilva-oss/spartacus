@@ -175,7 +175,7 @@ export function preencher(modelo: Modelo, cliente: Partial<Cliente> & { honorari
   };
   return modelo.html.replace(/\{\{(\w+)\}\}/g, (_, k) => {
     // Logo: imagem do escritório (data URL) ou a padrão; nunca a lacuna dentro do src
-    if (k === 'escritorio_logo') return escaparHtml(/^(data:image\/|\/|https:\/\/)/.test(escritorio.logo || '') ? escritorio.logo! : '/logo.svg');
+    if (k === 'escritorio_logo') return escaparHtml(/^(data:image\/|\/|https:\/\/)/.test(escritorio.logo || '') ? escritorio.logo! : '/logo.png');
     if (k === 'escritorio_contato' && !base[k]) return '';
     const v = (base[k] || '').trim();
     return v ? escaparHtml(v) : '<span class="lacuna">_________________________</span>';

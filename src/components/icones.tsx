@@ -86,5 +86,5 @@ export function Icone({ nome, tamanho }: { nome: keyof typeof caminhos | string;
 }
 
 export function Logo({ tamanho = 34 }: { tamanho?: number }) {
-  return <img src="/logo.svg" width={tamanho} height={tamanho} alt="" style={{ borderRadius: 8 }} />;
+  return <img src="/logo.png" width={tamanho} height={tamanho} alt="" style={{ borderRadius: 8 }} />;
 }

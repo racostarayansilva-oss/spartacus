@@ -90,7 +90,7 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
     <div className="pub">
       <header className={`pub-topo${rolou ? ' rolou' : ''}`}>
         <Link to="/" className="pub-marca" aria-label={`${nome} — início`}>
-          <img src={marca.logo || '/logo.svg'} alt="" width={30} height={30} style={{ objectFit: 'contain' }} />
+          <img src={marca.logo || '/logo.png'} alt="" width={30} height={30} style={{ objectFit: 'contain' }} />
           <span>{nome}</span>
         </Link>
         <nav className="pub-nav" aria-label="Seções">

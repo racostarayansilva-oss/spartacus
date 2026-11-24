@@ -55,7 +55,7 @@ export function PreviaMarca({ marca }: { marca: Marca }) {
   return (
     <div className="previa-marca">
       <div className="previa-lateral">
-        <span className="previa-logo">{marca.logo ? <img src={marca.logo} alt="" /> : <img src="/logo.svg" alt="" />}<b>{nomeExibido(marca)}</b></span>
+        <span className="previa-logo">{marca.logo ? <img src={marca.logo} alt="" /> : <img src="/logo.png" alt="" />}<b>{nomeExibido(marca)}</b></span>
         <span className="previa-item ativo" style={{ color: primaria, background: t.claro['--primario-suave'], fontWeight: 600 }}>Área de trabalho</span>
         <span className="previa-item">Processos</span>
         <span className="previa-item">Publicações</span>

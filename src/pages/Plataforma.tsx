@@ -124,7 +124,7 @@ function FichaEscritorio({ e, uso, aoMudar }: { e: EscritorioPlataforma; uso?: U
     <div className="plat-ficha">
       <div className="cartao">
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <img src={e.marca?.logo || '/logo.svg'} alt="" width={44} height={44} style={{ borderRadius: 10, objectFit: 'contain', background: 'var(--superficie-2)' }} />
+          <img src={e.marca?.logo || '/logo.png'} alt="" width={44} height={44} style={{ borderRadius: 10, objectFit: 'contain', background: 'var(--superficie-2)' }} />
           <div style={{ flex: 1, minWidth: 200 }}>
             <h2 style={{ margin: 0 }}>{e.nome}</h2>
             <a href={url} target="_blank" rel="noreferrer" className="mono">{url.replace(/^https?:\/\//, '')}</a>
@@ -284,7 +284,7 @@ export default function Plataforma({ sozinha = false }: { sozinha?: boolean }) {
                 return (
                   <li key={e.id}>
                     <button className={sel === e.id ? 'ativo' : ''} onClick={() => setSel(e.id)}>
-                      <img src={e.marca?.logo || '/logo.svg'} alt="" width={28} height={28} />
+                      <img src={e.marca?.logo || '/logo.png'} alt="" width={28} height={28} />
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <b>{e.nome}</b>
                         <small>{e.situacao === 'implantacao' ? `Implantação ${p.percentual}% · próximo: ${p.proximo?.titulo ?? '—'}` : `${ROTULO_SITUACAO[e.situacao]} · ${PLANOS[e.plano]} · ${uso.get(e.id)?.processos ?? 0} processos`}</small>
@@ -314,7 +314,7 @@ export default function Plataforma({ sozinha = false }: { sozinha?: boolean }) {
   return (
     <div className="plataforma-sozinha">
       <header className="plat-topo">
-        <span className="marca"><img src="/logo.svg" width={30} height={30} alt="" /><b>{PRODUTO}</b></span>
+        <span className="marca"><img src="/logo.png" width={30} height={30} alt="" /><b>{PRODUTO}</b></span>
         <button className="btn pequeno" onClick={() => sair()}>Sair</button>
       </header>
       <main className="principal">{corpo}</main>

@@ -166,8 +166,9 @@ function aplicarNoDocumento(m: Marca) {
   }
   tag.textContent = cssDaMarca(m);
   document.title = m.nome && m.nome !== PRODUTO ? `${nomeExibido(m)} · ${PRODUTO}` : PRODUTO;
-  const icone = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-  if (icone) icone.href = m.logo || '/logo.svg';
+  document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]').forEach((icone) => {
+    icone.href = m.logo || (icone.sizes.contains('16x16') ? '/favicon-16.png' : '/favicon-32.png');
+  });
 }
 
 // ---------- qual escritório é este endereço ----------

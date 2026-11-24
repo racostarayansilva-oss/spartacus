@@ -14,7 +14,7 @@ function Moldura({ titulo, subtitulo, voltar, children }: { titulo: string; subt
         {voltar && <Link to="/" className="acesso-voltar">← Voltar ao início</Link>}
         <div className="acesso-cartao">
           <div className="acesso-marca">
-            <img src={marca.logo || '/logo.svg'} alt={nomeExibido(marca)} />
+            <img src={marca.logo || '/logo.png'} alt={nomeExibido(marca)} />
             {escritorio && <span className="acesso-escritorio">{marca.nome}</span>}
             <h1>{titulo}</h1>
             {subtitulo && <p>{subtitulo}</p>}
