@@ -177,12 +177,26 @@ export default function AreaTrabalho() {
 
   return (
     <div className="area-trabalho">
-      <div className="at-saudacao">
-        <div>
-          <h1>{saudacao()}{eu ? `, ${primeiroNome(eu.nome)}` : ''}</h1>
-          <p className="subtitulo">{(escritorio ? marca.nome : b.config.nomeEscritorio) || marca.nome} · {formatarComSemana(h)}</p>
+      <section className="at-hero" aria-labelledby="titulo-saudacao">
+        <div className="at-hero-texto">
+          <p className="at-hero-data">{formatarComSemana(h)}</p>
+          <h1 id="titulo-saudacao">{saudacao()}{eu ? `, ${primeiroNome(eu.nome)}` : ''}.</h1>
+          <p className="at-hero-lead">
+            <span>{dia.atrasados.length + dia.hoje.length
+              ? <><em className="num">{dia.atrasados.length + dia.hoje.length}</em> {dia.atrasados.length + dia.hoje.length === 1 ? 'item pede' : 'itens pedem'} atenção hoje{dia.atrasados.length ? `, ${dia.atrasados.length} em atraso` : ''}.</>
+              : 'Nada pendente para hoje.'}</span>
+            <span className="at-hero-escritorio">{(escritorio ? marca.nome : b.config.nomeEscritorio) || marca.nome}</span>
+          </p>
         </div>
-      </div>
+        <div className="at-indicadores">
+          {indicadores.filter(([rota]) => rotaLiberada(rota, desligados)).map(([rota, rotulo, n, icone, alerta]) => (
+            <Link key={rotulo} to={rota} className={`at-indicador ${alerta ? 'alerta' : ''}`}>
+              <span className="valor num">{n}</span>
+              <span className="rotulo"><Icone nome={icone} tamanho={14} />{rotulo}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {impl && !impl.concluida && (
         <Link to={impl.proximo?.rota || '/config'} className="at-implantacao">
@@ -190,16 +204,6 @@ export default function AreaTrabalho() {
           <span className="barra" aria-hidden="true"><span style={{ width: `${impl.percentual}%` }} /></span>
         </Link>
       )}
-
-      <div className="at-indicadores">
-        {indicadores.filter(([rota]) => rotaLiberada(rota, desligados)).map(([rota, rotulo, n, icone, alerta]) => (
-          <Link key={rotulo} to={rota} className={`at-indicador ${alerta ? 'alerta' : ''}`}>
-            <Icone nome={icone} tamanho={18} />
-            <span className="valor num">{n}</span>
-            <span className="rotulo">{rotulo}</span>
-          </Link>
-        ))}
-      </div>
 
       <div className="at-colunas">
         <section className="cartao at-dia" aria-labelledby="titulo-dia">
@@ -228,7 +232,7 @@ export default function AreaTrabalho() {
         <div className="at-lado">
           {rotaLiberada('/controladoria', desligados) && (
             <section className="cartao" aria-labelledby="titulo-pub">
-              <div className="at-secao-cab"><h2 id="titulo-pub">Publicações</h2><Link to="/controladoria" className="btn pequeno fantasma">Ver todas</Link></div>
+              <div className="at-secao-cab"><h2 id="titulo-pub">Publicações</h2><Link to="/controladoria" className="btn pequeno fantasma">Ver todas ›</Link></div>
               {!publicacoes.length ? <p className="mudo" style={{ margin: 0 }}>Nenhuma publicação nova. A busca no DJEN roda sozinha às 7h e às 13h.</p> : (
                 <ul className="at-mini">
                   {publicacoes.slice(0, 5).map((i) => (

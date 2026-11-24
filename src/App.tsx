@@ -90,8 +90,8 @@ function Aplicativo() {
         <NavLink to="/" className="marca">
           {marca.logo ? <img src={marca.logo} width={34} height={34} alt="" className="marca-logo" /> : <Logo />}
           <span className="marca-texto">
-            <b>{nomeExibido(marca).toUpperCase()}</b>
-            <small>{(marca.subtitulo || 'SOFTWARE JURÍDICO').toUpperCase()}</small>
+            <b>{nomeExibido(marca)}</b>
+            <small>{marca.subtitulo || 'Software jurídico'}</small>
           </span>
         </NavLink>
         <nav className="nav">

@@ -54,15 +54,15 @@ export function PreviaMarca({ marca }: { marca: Marca }) {
   const ajustada = corValida(marca.corPrimaria) && primaria.toLowerCase() !== marca.corPrimaria.toLowerCase();
   return (
     <div className="previa-marca">
-      <div className="previa-lateral" style={{ background: t.comum['--lateral'] }}>
-        <span className="previa-logo">{marca.logo ? <img src={marca.logo} alt="" /> : <img src="/logo.svg" alt="" />}</span>
-        <b>{nomeExibido(marca)}</b>
-        <span className="previa-item ativo" style={{ color: t.comum['--lateral-ativo'], boxShadow: `inset 3px 0 0 ${t.comum['--destaque']}`, background: t.comum['--lateral-2'] }}>Área de trabalho</span>
+      <div className="previa-lateral">
+        <span className="previa-logo">{marca.logo ? <img src={marca.logo} alt="" /> : <img src="/logo.svg" alt="" />}<b>{nomeExibido(marca)}</b></span>
+        <span className="previa-item ativo" style={{ color: primaria, background: t.claro['--primario-suave'], fontWeight: 600 }}>Área de trabalho</span>
         <span className="previa-item">Processos</span>
+        <span className="previa-item">Publicações</span>
       </div>
       <div className="previa-corpo">
         <button type="button" className="btn" style={{ background: primaria, color: t.claro['--sobre-primario'], borderColor: primaria }}>Novo processo</button>
-        <button type="button" className="btn" style={{ background: t.comum['--destaque'], color: t.comum['--sobre-destaque'], borderColor: t.comum['--destaque'] }}>Destaque</button>
+        <span className="previa-faixa">Bom dia. <em style={{ color: t.comum['--destaque'] }}>3</em> itens hoje</span>
         <a style={{ color: t.claro['--link'] }}>Link de exemplo</a>
         {ajustada && <p className="mudo" style={{ margin: 0, fontSize: 12 }}>A cor principal foi escurecida para manter o texto legível (contraste {contraste(marca.corPrimaria!, '#ffffff').toFixed(1)}:1 era baixo).</p>}
       </div>

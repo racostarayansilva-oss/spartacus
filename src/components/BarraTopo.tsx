@@ -82,7 +82,7 @@ export function NovoRapido() {
   }, [aberto]);
   return (
     <div className="novo-rapido" ref={raiz}>
-      <button className="btn destaque" onClick={() => setAberto(!aberto)} aria-expanded={aberto} aria-haspopup="menu">
+      <button className="btn primario" onClick={() => setAberto(!aberto)} aria-expanded={aberto} aria-haspopup="menu">
         <Icone nome="mais" tamanho={16} />Novo
       </button>
       {aberto && (

@@ -63,7 +63,7 @@ describe('cores da marca', () => {
     const t = tokensDaMarca({ corPrimaria: '#0131CD', corDestaque: '#B9FC01' });
     expect(t.claro['--primario']).toBe('#0131cd');
     expect(t.claro['--sobre-primario']).toBe('#ffffff');
-    expect(contraste(t.escuro['--primario'], '#1e2329')).toBeGreaterThanOrEqual(4.5);
+    expect(contraste(t.escuro['--primario'], '#1d1d1f')).toBeGreaterThanOrEqual(4.5);
     expect(t.comum['--sobre-destaque']).toBe('#0b0e11');
     expect(contraste(t.comum['--lateral-ativo'], t.comum['--lateral'])).toBeGreaterThanOrEqual(4.5);
   });

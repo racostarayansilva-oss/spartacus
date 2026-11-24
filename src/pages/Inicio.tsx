@@ -91,7 +91,7 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
       <header className={`pub-topo${rolou ? ' rolou' : ''}`}>
         <Link to="/" className="pub-marca" aria-label={`${nome} — início`}>
           <img src={marca.logo || '/logo.svg'} alt="" width={30} height={30} style={{ objectFit: 'contain' }} />
-          <span>{nome.toUpperCase()}</span>
+          <span>{nome}</span>
         </Link>
         <nav className="pub-nav" aria-label="Seções">
           <a href="#fluxo">Como funciona</a>
@@ -121,7 +121,8 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
           <Previa />
         </section>
 
-        <section id="fluxo" className="pub-secao">
+        <section id="fluxo" className="pub-secao pub-escura">
+          <div className="pub-dentro">
           <div className="pub-secao-cab">
             <p className="pub-sobretitulo">Como funciona</p>
             <h2>Da publicação ao cliente informado, sem planilha no meio.</h2>
@@ -135,9 +136,11 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
               </li>
             ))}
           </ol>
+          </div>
         </section>
 
-        <section id="modulos" className="pub-secao">
+        <section id="modulos" className="pub-secao pub-pergaminho">
+          <div className="pub-dentro">
           <div className="pub-secao-cab">
             <p className="pub-sobretitulo">Módulos</p>
             <h2>O essencial de um escritório, num lugar só.</h2>
@@ -150,6 +153,7 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
                 <p>{m.texto}</p>
               </article>
             ))}
+          </div>
           </div>
         </section>
 

@@ -33,7 +33,7 @@ export interface EscritorioPublico {
 export const PRODUTO = 'Spartacus';
 export const MARCA_PADRAO: Required<Pick<Marca, 'nome' | 'subtitulo' | 'corPrimaria' | 'corDestaque'>> = {
   nome: PRODUTO,
-  subtitulo: 'SOFTWARE JURÍDICO',
+  subtitulo: 'Software jurídico',
   corPrimaria: '#0131CD',
   corDestaque: '#B9FC01',
 };
@@ -83,8 +83,8 @@ export function legivelSobre(cor: string, fundo: string, minimo = 4.5): string {
   return alvo;
 }
 
-const FUNDO_ESCURO = '#0b0e11';
-const SUPERFICIE_ESCURA = '#1e2329';
+const FUNDO_ESCURO = '#000000';
+const SUPERFICIE_ESCURA = '#1d1d1f';
 
 /** Variáveis CSS da marca para os dois temas. */
 export function tokensDaMarca(m: Marca): { claro: Record<string, string>; escuro: Record<string, string>; comum: Record<string, string> } {
@@ -92,7 +92,7 @@ export function tokensDaMarca(m: Marca): { claro: Record<string, string>; escuro
   const p = norm(corValida(m.corPrimaria) ? m.corPrimaria : MARCA_PADRAO.corPrimaria);
   const d = norm(corValida(m.corDestaque) ? m.corDestaque : MARCA_PADRAO.corDestaque);
   const lateral = luminancia(p) > 0.25 ? misturar(p, '#000000', 0.72) : misturar(p, '#000000', 0.55);
-  const comum = {
+  const comum: Record<string, string> = {
     '--destaque': d,
     '--sobre-destaque': sobre(d),
     '--lateral': lateral,
@@ -118,6 +118,7 @@ export function tokensDaMarca(m: Marca): { claro: Record<string, string>; escuro
     '--sobre-primario': sobre(pEscuro),
     '--link': pEscuro,
   };
+  Object.assign(comum, { '--acao-clara': pClaro, '--sobre-acao-clara': sobre(pClaro), '--acao-clara-ativa': misturar(pClaro, '#000000', 0.15) });
   return { claro, escuro, comum };
 }
 
