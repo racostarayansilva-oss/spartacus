@@ -41,3 +41,19 @@ Fonte do sistema (SF Pro no Mac/iPhone), Inter nos demais. Pesos 300/400/600/700
 - Toque mínimo de 44px no celular.
 
 Tema escuro: preto `#000`, superfícies `#1d1d1f`/`#272729`, a cor primária é clareada por `src/marca.ts` até ter contraste 4,5:1.
+
+## Identidade Spartacus
+
+Vale só onde não há escritório (site do produto, demonstração, login sem escritório, console da Plataforma). Dentro do endereço de um escritório, a marca é a dele (white label).
+
+| Peça | Arquivo | Uso |
+|---|---|---|
+| Capacete (ícone) | `public/logo.png`, `favicon-*.png`, `apple-touch-icon.png` | favicon, atalho no celular, logo padrão de escritório sem logo |
+| Assinatura horizontal | `public/marca/horizontal-azul.png` / `horizontal-branco.png` | lateral (troca pelo tema), cabeçalho do site, Plataforma, login |
+| Nome (wordmark) | `public/marca/wordmark-azul.png` / `wordmark-branco.png` | rodapé do site |
+| Banner | `public/marca/banner.jpg` | abertura do site do produto |
+| Compartilhamento | `public/marca/compartilhar.jpg` (1200×630) | prévia de link (WhatsApp, redes) |
+
+- Marinho da identidade: `#011c96` (fundo do banner e do login do produto). Azul de ação: `#0131CD`. Verde-limão: `#B9FC01`.
+- Slogan: **Disciplina · Estratégia · Resultado**.
+- As versões com fundo transparente foram geradas a partir das artes originais; a "azul" é para fundo claro (o verde-limão fica escurecido para continuar legível).

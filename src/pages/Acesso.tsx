@@ -4,24 +4,26 @@ import { Link } from 'react-router-dom';
 import { Campo } from '../components/ui';
 import { criarConta, definirNovaSenha, enviarRecuperacao, entrar, sair } from '../nuvem';
 import { nomeExibido, PRODUTO, useMarca } from '../marca';
+import { LogoSpartacus } from '../components/icones';
 import '../inicio.css';
 
 function Moldura({ titulo, subtitulo, voltar, children }: { titulo: string; subtitulo?: string; voltar?: boolean; children: ReactNode }) {
   const { marca, escritorio } = useMarca();
   return (
-    <div className="acesso">
+    <div className={`acesso${escritorio ? '' : ' acesso-produto'}`}>
       <div className="acesso-coluna">
+        {!escritorio && <LogoSpartacus cor="branco" largura={260} className="acesso-assinatura" />}
         {voltar && <Link to="/" className="acesso-voltar">← Voltar ao início</Link>}
         <div className="acesso-cartao">
           <div className="acesso-marca">
-            <img src={marca.logo || '/logo.png'} alt={nomeExibido(marca)} />
+            {escritorio && <img src={marca.logo || '/logo.png'} alt={nomeExibido(marca)} />}
             {escritorio && <span className="acesso-escritorio">{marca.nome}</span>}
             <h1>{titulo}</h1>
             {subtitulo && <p>{subtitulo}</p>}
           </div>
           {children}
         </div>
-        <p className="acesso-rodape">{escritorio ? `${marca.nome} · acesso restrito à equipe · ${PRODUTO}` : `${PRODUTO} · software jurídico`}</p>
+        <p className="acesso-rodape">{escritorio ? `${marca.nome} · acesso restrito à equipe · ${PRODUTO}` : 'Disciplina · Estratégia · Resultado'}</p>
       </div>
     </div>
   );

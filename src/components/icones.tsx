@@ -85,6 +85,19 @@ export function Icone({ nome, tamanho }: { nome: keyof typeof caminhos | string;
   );
 }
 
+/** Assinatura horizontal do Spartacus (capacete + nome). "auto" troca a versão azul/branca conforme o tema. */
+export function LogoSpartacus({ cor = 'auto', largura = 200, className = '' }: { cor?: 'auto' | 'azul' | 'branco'; largura?: number; className?: string }) {
+  const alt = 'Spartacus · software jurídico';
+  const h = Math.round((largura * 367) / 1519);
+  if (cor !== 'auto') return <img src={`/marca/horizontal-${cor}.png`} width={largura} height={h} alt={alt} className={className} />;
+  return (
+    <span className={`logo-spartacus ${className}`}>
+      <img src="/marca/horizontal-azul.png" width={largura} height={h} alt={alt} className="so-claro" />
+      <img src="/marca/horizontal-branco.png" width={largura} height={h} alt="" aria-hidden="true" className="so-escuro" />
+    </span>
+  );
+}
+
 export function Logo({ tamanho = 34 }: { tamanho?: number }) {
   return <img src="/logo.png" width={tamanho} height={tamanho} alt="" style={{ borderRadius: 8 }} />;
 }

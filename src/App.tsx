@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { aplicarMigracoes, migracoesPendentes } from './migracoes';
 import { NavLink, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import Inicio from './pages/Inicio';
-import { Icone, Logo } from './components/icones';
+import { Icone, LogoSpartacus } from './components/icones';
 import { alterar, MODO_NUVEM, useBanco, usuarioAtual } from './store';
 import { sair, useNuvem } from './nuvem';
 import { AguardandoLiberacao, Carregando, ErroNuvem, Login, NovaSenha, OutroEscritorio } from './pages/Acesso';
@@ -88,11 +88,15 @@ function Aplicativo() {
     <div className="app">
       <aside className="lateral">
         <NavLink to="/" className="marca">
-          {marca.logo ? <img src={marca.logo} width={34} height={34} alt="" className="marca-logo" /> : <Logo />}
-          <span className="marca-texto">
-            <b>{nomeExibido(marca)}</b>
-            <small>{marca.subtitulo || 'Software jurídico'}</small>
-          </span>
+          {!marca.logo && !escritorio ? <LogoSpartacus largura={196} /> : (
+            <>
+              {marca.logo ? <img src={marca.logo} width={34} height={34} alt="" className="marca-logo" /> : <img src="/logo.png" width={34} height={34} alt="" className="marca-logo" />}
+              <span className="marca-texto">
+                <b>{nomeExibido(marca)}</b>
+                <small>{marca.subtitulo || 'Software jurídico'}</small>
+              </span>
+            </>
+          )}
         </NavLink>
         <nav className="nav">
           {secoes.map((s) => (

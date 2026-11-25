@@ -220,3 +220,16 @@
   .novo-rapido .btn { padding: 0 12px; }
   .at-colunas, .at-lado, .area-trabalho { min-width: 0; }
 }
+
+/* ---------- Identidade Spartacus (só quando não há escritório: produto, demonstração, plataforma) ---------- */
+.logo-spartacus { display: inline-flex; }
+.logo-spartacus img, .marca img { display: block; height: auto; max-width: 100%; }
+.so-escuro { display: none !important; }
+:root[data-theme='dark'] .so-claro { display: none !important; }
+:root[data-theme='dark'] .so-escuro { display: block !important; }
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'] .so-claro { display: none !important; }
+  :root[data-theme='system'] .so-escuro { display: block !important; }
+}
+.lateral .marca:has(.logo-spartacus) { padding: 2px 6px 4px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

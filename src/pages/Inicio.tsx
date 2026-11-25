@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { nomeExibido, PRODUTO, useMarca } from '../marca';
-import { Icone } from '../components/icones';
+import { Icone, LogoSpartacus } from '../components/icones';
 import { formatarComSemana, hoje } from '../lib/datas';
 import { prazoJudicial } from '../lib/prazos';
 import '../inicio.css';
@@ -90,8 +90,12 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
     <div className="pub">
       <header className={`pub-topo${rolou ? ' rolou' : ''}`}>
         <Link to="/" className="pub-marca" aria-label={`${nome} — início`}>
-          <img src={marca.logo || '/logo.png'} alt="" width={30} height={30} style={{ objectFit: 'contain' }} />
-          <span>{nome}</span>
+          {escritorio ? (
+            <>
+              <img src={marca.logo || '/logo.png'} alt="" width={30} height={30} style={{ objectFit: 'contain' }} />
+              <span>{nome}</span>
+            </>
+          ) : <LogoSpartacus cor="azul" largura={150} />}
         </Link>
         <nav className="pub-nav" aria-label="Seções">
           <a href="#fluxo">Como funciona</a>
@@ -101,9 +105,14 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
       </header>
 
       <main>
+        {!escritorio && (
+          <section className="pub-banner" aria-label="Spartacus · software jurídico">
+            <img src="/marca/banner.jpg" width={1672} height={941} alt="Spartacus, software jurídico: disciplina, estratégia, resultado." />
+          </section>
+        )}
         <section className="pub-hero">
           <div className="pub-hero-texto">
-            <p className="pub-sobretitulo">{escritorio ? `Sistema de ${marca.nome}` : `${PRODUTO} · software jurídico para escritórios`}</p>
+            <p className="pub-sobretitulo">{escritorio ? `Sistema de ${marca.nome}` : 'Software jurídico para escritórios'}</p>
             <h1>Cada prazo, cada processo, cada cliente <span>no lugar certo.</span></h1>
             <p className="pub-lead">
               Publicações, prazos, atividades e atendimento num só lugar, com foco em quem atua em volume no INSS, na Justiça Federal e na Estadual.
@@ -165,6 +174,7 @@ export default function Inicio({ destinoEntrar, logado = false }: { destinoEntra
       </main>
 
       <footer className="pub-rodape">
+        {!escritorio && <img src="/marca/wordmark-azul.png" width={140} height={23} alt="Spartacus" className="pub-rodape-marca" />}
         <p>© {ano} {escritorio ? [marca.nome, marca.rodape].filter(Boolean).join(' · ') : PRODUTO}{escritorio ? ` · feito com ${PRODUTO}` : ''}</p>
       </footer>
     </div>

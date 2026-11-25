@@ -188,3 +188,17 @@
 .acesso-rodape { text-align: center; font-size: 12px; color: var(--pub-texto-2); margin: 0; }
 .acesso .erro, .acesso .aviso { margin: 0; color: var(--pub-texto); }
 .acesso .mudo { color: var(--pub-texto-2); }
+
+/* ---------- Identidade Spartacus ---------- */
+.pub, .acesso { --marinho: #011c96; }
+.pub-banner { background: var(--marinho); display: flex; justify-content: center; }
+.pub-banner img { display: block; width: 100%; max-width: 1672px; height: auto; }
+.pub-marca .logo-spartacus img, .pub-marca > img { display: block; height: auto; }
+.pub-rodape { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
+.pub-rodape-marca { display: block; height: auto; }
+/* Login do produto: fundo marinho da identidade, cartão branco */
+.acesso-produto { background: var(--marinho); }
+.acesso-produto .acesso-coluna { justify-items: stretch; }
+.acesso-assinatura { justify-self: center; height: auto; max-width: 80%; margin-bottom: 6px; }
+.acesso-produto .acesso-voltar { color: #fff !important; opacity: 0.85; }
+.acesso-produto .acesso-rodape { color: rgba(255, 255, 255, 0.78); letter-spacing: 0.24em; text-transform: uppercase; font-size: 11px; }

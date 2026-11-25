@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { DOMINIO_PLATAFORMA } from '../config';
 import { FormMarca, PreviaMarca } from '../components/MarcaEscritorio';
-import { Icone } from '../components/icones';
+import { Icone, LogoSpartacus } from '../components/icones';
 import {
   alternarPasso, duracao, enderecoEscritorio, limparDominioProprio, MINUTOS_PREVISTOS, minutosDecorridos, PASSOS_IMPLANTACAO,
   passoFeito, progresso, slugDoNome, slugValido,
@@ -314,7 +314,7 @@ export default function Plataforma({ sozinha = false }: { sozinha?: boolean }) {
   return (
     <div className="plataforma-sozinha">
       <header className="plat-topo">
-        <span className="marca"><img src="/logo.png" width={30} height={30} alt="" /><b>{PRODUTO}</b></span>
+        <span className="marca"><LogoSpartacus largura={150} /><b className="sr-only">{PRODUTO}</b></span>
         <button className="btn pequeno" onClick={() => sair()}>Sair</button>
       </header>
       <main className="principal">{corpo}</main>
